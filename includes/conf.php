@@ -1,4 +1,6 @@
 <?php
+header("Access-Control-Allow-Origin: *");
+
 // Database configuration constants
 define('DB_HOST', 'localhost');
 define('DB_USER', 'root');

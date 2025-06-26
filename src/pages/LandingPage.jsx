@@ -1,4 +1,6 @@
 import React from 'react'
+import { useEffect, useState } from 'react'
+import axios from 'axios'
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { Swiper, SwiperSlide } from 'swiper/react'
@@ -20,11 +22,11 @@ const LandingPage = () => {
       title: 'مرحباً بك في قصر نور الشمس',
       subtitle: 'للجمال والعناية المتميزة'
     },
-    {
-      image: 'https://images.pexels.com/photos/3997991/pexels-photo-3997991.jpeg?auto=compress&cs=tinysrgb&w=1200',
+   /* {
+      image: 'https://via.placeholder.com/1200x600?text=Coming+Soon',
       title: 'خدمات العناية بالبشرة',
       subtitle: 'بأحدث التقنيات العالمية'
-    },
+    }*/,
     {
       image: 'https://images.pexels.com/photos/3993456/pexels-photo-3993456.jpeg?auto=compress&cs=tinysrgb&w=1200',
       title: 'العناية بالشعر',
@@ -32,29 +34,18 @@ const LandingPage = () => {
     }
   ]
 
-  const services = [
-    {
-      id: 1,
-      name: 'العناية بالشعر',
-      description: 'قص، صبغ، تصفيف، علاجات متخصصة للشعر التالف، وأحدث صيحات تسريحات الشعر.',
-      image: 'https://images.pexels.com/photos/3993456/pexels-photo-3993456.jpeg?auto=compress&cs=tinysrgb&w=400',
-      price: 'من 150 ر.س'
-    },
-    {
-      id: 2,
-      name: 'العناية بالبشرة',
-      description: 'تنظيف البشرة، تقشير، ماسكات، علاجات متخصصة للبشرة الحساسة والجافة والدهنية.',
-      image: 'https://images.pexels.com/photos/3997993/pexels-photo-3997993.jpeg?auto=compress&cs=tinysrgb&w=400',
-      price: 'من 120 ر.س'
-    },
-    {
-      id: 3,
-      name: 'المكياج',
-      description: 'مكياج يومي، مكياج سهرات، مكياج عرائس، دروس في فن المكياج وأحدث الصيحات.',
-      image: 'https://images.pexels.com/photos/457701/pexels-photo-457701.jpeg?auto=compress&cs=tinysrgb&w=400',
-      price: 'من 180 ر.س'
-    }
-  ]
+  const [services, setServices] = useState([])
+
+useEffect(() => {
+  axios.get('http://localhost/senior-nooralshams/api/services/viewServices.php')
+    .then(response => {
+      setServices(response.data.services || [])
+    })
+    .catch(error => {
+      console.error('Error fetching services:', error)
+    })
+}, [])
+
 
   const testimonials = [
     {
@@ -194,59 +185,69 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* Services Section */}
-      <section id="services" className="py-20 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">{t('services')}</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              نقدم مجموعة متنوعة من خدمات الجمال والعناية لتلبية احتياجاتك
-            </p>
-          </motion.div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {services.map((service, index) => (
-              <motion.div
-                key={service.id}
-                initial={{ opacity: 0, y: 50 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: index * 0.2 }}
-                viewport={{ once: true }}
-                className="card overflow-hidden group hover:scale-105"
-              >
-                <div className="relative overflow-hidden">
-                  <img 
-                    src={service.image} 
-                    alt={service.name}
-                    className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300"
-                  />
-                  <div className="absolute top-4 right-4 bg-primary-200 text-white px-3 py-1 rounded-full text-sm font-medium">
-                    {service.price}
-                  </div>
-                </div>
-                
-                <div className="p-6">
-                  <h3 className="text-xl font-bold text-gray-900 mb-3">{service.name}</h3>
-                  <p className="text-gray-600 mb-4">{service.description}</p>
-                  <Link 
-                    to="/register" 
-                    className="inline-flex items-center text-primary-200 hover:text-primary-300 font-medium group"
-                  >
-                    احجزي الآن
-                    <ArrowLeft className="w-4 h-4 mr-2 group-hover:translate-x-1 transition-transform" />
-                  </Link>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+      
+{/* Services Section */}
+<section id="services" className="py-20 bg-gray-50">
+  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <motion.div
+      initial={{ opacity: 0, y: 50 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.8 }}
+      viewport={{ once: true }}
+      className="text-center mb-16"
+    >
+      <h2 className="text-4xl font-bold text-gray-900 mb-4">{t('services')}</h2>
+      <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+        نقدم مجموعة متنوعة من خدمات الجمال والعناية لتلبية احتياجاتك
+      </p>
+    </motion.div>
+
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+  {services.slice(0, 3).map((service, index) => (
+    <motion.div
+      key={service.id}
+      initial={{ opacity: 0, y: 50 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.8, delay: index * 0.2 }}
+      viewport={{ once: true }}
+      className="card overflow-hidden group hover:scale-105"
+    >
+      <div className="relative overflow-hidden">
+        <img 
+          src={service.image_path ? `http://localhost/seniorII/${service.image_path}` : 'https://via.placeholder.com/300x200?text=No+Image'} 
+          alt={service.name}
+          className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300"
+        />
+        <div className="absolute top-4 right-4 bg-primary-200 text-white px-3 py-1 rounded-full text-sm font-medium">
+          {service.price} ₪
         </div>
-      </section>
+      </div>
+
+      <div className="p-6">
+        <h3 className="text-xl font-bold text-gray-900 mb-3">{service.name}</h3>
+        <p className="text-gray-600 mb-4">{service.description}</p>
+        <Link 
+          to="/register" 
+          className="inline-flex items-center text-primary-200 hover:text-primary-300 font-medium group"
+        >
+          احجزي الآن
+          <ArrowLeft className="w-4 h-4 mr-2 group-hover:translate-x-1 transition-transform" />
+        </Link>
+      </div>
+    </motion.div>
+  ))}
+</div>
+<div className="text-center mt-10">
+  <Link
+    to="/services"
+    className="inline-block bg-primary-200 text-white px-6 py-3 rounded-full shadow hover:bg-primary-300 transition"
+  >
+    مشاهدة كل الخدمات
+  </Link>
+</div>
+  </div>
+</section>
+
 
       {/* About Section */}
       <section id="about" className="py-20 bg-white">
@@ -259,7 +260,7 @@ const LandingPage = () => {
               viewport={{ once: true }}
             >
               <img 
-                src="https://images.pexels.com/photos/3997991/pexels-photo-3997991.jpeg?auto=compress&cs=tinysrgb&w=600" 
+               src="uploads/cdn1.treatwell.webp" 
                 alt="قصر نور الشمس" 
                 className="rounded-2xl shadow-2xl w-full"
               />

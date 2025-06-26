@@ -13,8 +13,8 @@ const Footer = () => {
           {/* Logo and Description */}
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center space-x-2 space-x-reverse mb-4">
-              <img 
-                src="/frontend/public/assets/326990118_1174552563255369_3350075490533963167_n-removebg-preview1.png" 
+              <img  
+                src="uploads/326990118_1174552563255369_3350075490533963167_n-removebg-preview1.png" 
                 alt="قصر نور الشمس" 
                 className="h-10 w-10 object-contain"
               />

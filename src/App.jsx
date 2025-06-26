@@ -1,8 +1,9 @@
-import React, { Suspense } from 'react'
+import React, { Suspense, useEffect } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from './contexts/AuthContext'
 import { useLanguage } from './contexts/LanguageContext'
+import Banner from './components/ui/Banner';
 import LoadingSpinner from './components/ui/LoadingSpinner'
 import ErrorBoundary from './components/ui/ErrorBoundary'
 import WhatsAppButton from './components/ui/WhatsAppButton'
@@ -59,6 +60,7 @@ function App() {
     document.documentElement.lang = language
   }, [language])
 
+
   const renderMotionPage = (Component) => (
     <motion.div
       initial="initial"
@@ -74,6 +76,7 @@ function App() {
   return (
     <ErrorBoundary>
       <div className="min-h-screen gradient-bg">
+        <Banner />
         <Header/>
         <AnimatePresence mode="wait">
           <Suspense fallback={<LoadingSpinner />}>

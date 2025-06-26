@@ -11,7 +11,7 @@ const About = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <motion.div initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8 }}>
             <img 
-              src="https://images.pexels.com/photos/3997991/pexels-photo-3997991.jpeg?auto=compress&cs=tinysrgb&w=600" 
+              src="uploads/cdn1.treatwell.webp" 
               alt="قصر نور الشمس" 
               className="rounded-2xl shadow-2xl w-full"
             />
@@ -20,8 +20,8 @@ const About = () => {
           <motion.div initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8 }}>
             <h2 className="text-4xl font-bold text-gray-900 mb-6">{t('about')}</h2>
             <p className="text-lg text-gray-700 mb-8 leading-relaxed">
-              قصر نور الشمس هو مركز متكامل للجمال والعناية بالمرأة، تأسس عام 2010 على يد خبراء
-              في مجال التجميل نسعى دائماً لتقديم أفضل الخدمات باستخدام أحدث التقنيات والمنتجات العالمية.
+              قصر نور الشمس هو مركز متكامل تجميل يختص بالعناية بالمرأة، تأسس عام 2021 على يد خبراء
+              في مجال التجميل، نسعى دائماً لتقديم أفضل الخدمات باستخدام أحدث التقنيات والمنتجات العالمية.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {[ 'فريق من الخبراء المتخصصين', 'منتجات عالمية ذات جودة عالية', 'أجواء مريحة وراقية', 'أسعار مناسبة وعروض دورية' ].map((feature, index) => (
