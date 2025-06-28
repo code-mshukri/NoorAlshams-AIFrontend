@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react'
-import { authService } from '../services/authService'
+import axios from 'axios'
 import { toast } from 'react-toastify'
 
 const AuthContext = createContext()
@@ -14,11 +14,7 @@ const initialState = {
 const authReducer = (state, action) => {
   switch (action.type) {
     case 'AUTH_START':
-      return {
-        ...state,
-        loading: true,
-        error: null,
-      }
+      return { ...state, loading: true, error: null }
     case 'AUTH_SUCCESS':
       return {
         ...state,
@@ -44,10 +40,7 @@ const authReducer = (state, action) => {
         error: null,
       }
     case 'CLEAR_ERROR':
-      return {
-        ...state,
-        error: null,
-      }
+      return { ...state, error: null }
     default:
       return state
   }
@@ -56,81 +49,86 @@ const authReducer = (state, action) => {
 export const AuthProvider = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState)
 
-  // Check if user is already logged in on app start
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const token = localStorage.getItem('auth_token')
-        const userData = localStorage.getItem('user_data')
-        
-        if (token && userData) {
-          const user = JSON.parse(userData)
-          dispatch({ type: 'AUTH_SUCCESS', payload: user })
-        } else {
-          dispatch({ type: 'AUTH_FAILURE', payload: null })
-        }
-      } catch (error) {
-        dispatch({ type: 'AUTH_FAILURE', payload: 'فشل في التحقق من حالة تسجيل الدخول' })
-      }
-    }
+    const token = localStorage.getItem('auth_token')
+    const userData = localStorage.getItem('user_data')
 
-    checkAuth()
+    if (token && userData) {
+      dispatch({ type: 'AUTH_SUCCESS', payload: JSON.parse(userData) })
+    } else {
+      dispatch({ type: 'AUTH_FAILURE', payload: null })
+    }
   }, [])
 
-  const login = async (credentials) => {
-    try {
-      dispatch({ type: 'AUTH_START' })
-      
-      const response = await authService.login(credentials)
-      
-      if (response.status === 'success') {
-        const userData = {
-          full_name: response.full_name,
-          role: response.role,
-          csrf_token: response.csrf_token,
-        }
-        
-        // Store in localStorage
-        localStorage.setItem('auth_token', response.csrf_token)
-        localStorage.setItem('user_data', JSON.stringify(userData))
-        
-        dispatch({ type: 'AUTH_SUCCESS', payload: userData })
-        toast.success('تم تسجيل الدخول بنجاح!')
-        
-        return { success: true }
-      } else {
-        dispatch({ type: 'AUTH_FAILURE', payload: response.message })
-        toast.error(response.message)
-        return { success: false, error: response.message }
+  const login = async ({ email, password }) => {
+  try {
+    dispatch({ type: 'AUTH_START' });
+
+    const response = await axios.post(
+      'http://localhost/senior-nooralshams/api/auth/login.php',
+      { email, password },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        withCredentials: true,
       }
-    } catch (error) {
-      const errorMessage = 'حدث خطأ في تسجيل الدخول'
-      dispatch({ type: 'AUTH_FAILURE', payload: errorMessage })
-      toast.error(errorMessage)
-      return { success: false, error: errorMessage }
+    );
+
+    const res = response.data;
+
+    if (res.status === 'success') {
+      const userData = {
+        full_name: res.full_name,
+        role: res.role,
+        csrf_token: res.csrf_token,
+      };
+
+      localStorage.setItem('auth_token', res.csrf_token);
+      localStorage.setItem('user_data', JSON.stringify(userData));
+
+      dispatch({ type: 'AUTH_SUCCESS', payload: userData });
+      toast.success('تم تسجيل الدخول بنجاح!');
+      return { success: true };
+    } else {
+      // Handles known error messages like incorrect password
+      const errorMsg = res.message || 'فشل تسجيل الدخول';
+      dispatch({ type: 'AUTH_FAILURE', payload: errorMsg });
+      toast.error(errorMsg);
+      return { success: false, error: errorMsg };
     }
+
+  } catch (error) {
+    console.error('Login Error:', error);
+    const fallbackMessage = 'حدث خطأ في الاتصال بالخادم';
+    dispatch({ type: 'AUTH_FAILURE', payload: fallbackMessage });
+    toast.error(fallbackMessage);
+    return { success: false, error: fallbackMessage };
   }
+};
+
 
   const register = async (userData) => {
     try {
       dispatch({ type: 'AUTH_START' })
-      
-      const response = await authService.register(userData)
-      
-      if (response.status === 'success') {
+      const response = await axios.post(
+        'http://localhost/senior-nooralshams/api/auth/register.php',
+        userData
+      )
+
+      if (response.data.success) {
         toast.success('تم إنشاء الحساب بنجاح! يرجى التحقق من بريدك الإلكتروني')
-        dispatch({ type: 'AUTH_FAILURE', payload: null }) // Reset loading state
+        dispatch({ type: 'AUTH_FAILURE', payload: null })
         return { success: true }
       } else {
-        dispatch({ type: 'AUTH_FAILURE', payload: response.message })
-        toast.error(response.message)
-        return { success: false, error: response.message }
+        dispatch({ type: 'AUTH_FAILURE', payload: response.data.message })
+        toast.error(response.data.message || 'فشل التسجيل')
+        return { success: false }
       }
     } catch (error) {
-      const errorMessage = 'حدث خطأ في إنشاء الحساب'
-      dispatch({ type: 'AUTH_FAILURE', payload: errorMessage })
-      toast.error(errorMessage)
-      return { success: false, error: errorMessage }
+      dispatch({ type: 'AUTH_FAILURE', payload: 'خطأ في الاتصال بالخادم' })
+      toast.error('حدث خطأ في إنشاء الحساب')
+      return { success: false }
     }
   }
 
@@ -141,20 +139,18 @@ export const AuthProvider = ({ children }) => {
     toast.info('تم تسجيل الخروج بنجاح')
   }
 
-  const clearError = () => {
-    dispatch({ type: 'CLEAR_ERROR' })
-  }
-
-  const value = {
-    ...state,
-    login,
-    register,
-    logout,
-    clearError,
-  }
+  const clearError = () => dispatch({ type: 'CLEAR_ERROR' })
 
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider
+      value={{
+        ...state,
+        login,
+        register,
+        logout,
+        clearError,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   )

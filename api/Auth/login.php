@@ -1,13 +1,17 @@
 <?php 
+include(__DIR__ . '/../../includes/conf.php');
 // Sets the header to return JSON, useful for Postman or JS apps
 header("Content-Type: application/json");
+include(__DIR__ . '/../../includes/CsrfHelper.php');
 //Starts a session, which lets us store data..
 session_start();   
-include(__DIR__ . '/../../includes/conf.php');
-include(__DIR__ . '/../../includes/CsrfHelper.php');
 
-$email = $_POST['email'];
-$password = $_POST['password'];
+
+$input = json_decode(file_get_contents("php://input"), true);
+
+
+$email = $input['email'];
+$password = $input['password'];
 
 $sql = "SELECT full_name, id, is_active, is_verified, password, role FROM users WHERE email = ?";
 $stmt = $conn->prepare($sql);

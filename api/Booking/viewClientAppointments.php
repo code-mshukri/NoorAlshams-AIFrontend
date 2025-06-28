@@ -3,8 +3,10 @@ header("Content-Type: application/json");
 include(__DIR__ . '/../../includes/conf.php');  //Connects with the database.
 session_start();
 
-$client_id = $_POST['user_id'] ?? $_SESSION['user_id'] ?? null;
-$role = $_POST['role'] ?? $_SESSION['role'] ?? null;
+$client_id = $_SESSION['user_id'] ?? null;
+$role = $_SESSION['role'] ?? null;
+
+
 
 $sql = "SELECT id FROM users WHERE id = ? AND role = 'client' AND is_active = 1";
 $stmt = $conn->prepare($sql);
@@ -39,6 +41,16 @@ if(!$result || !$id || $role !== 'client')
     $limit = 10;
     $offset = ($page_num - 1) * $limit;
 
+    // Count total appointments for this client
+    $countSql = "SELECT COUNT(*) as total FROM appointments WHERE client_id = ?";
+    $countStmt = $conn->prepare($countSql);
+    $countStmt->bind_param("i", $client_id);
+    $countStmt->execute();
+    $countResult = $countStmt->get_result();
+    $totalAppointments = $countResult->fetch_assoc()['total'];
+    $countStmt->close();
+
+
     // SQL query to fetch appointments for the client
     // Including service name, staff name, price, date, and time
     $sql = "
@@ -48,7 +60,8 @@ if(!$result || !$id || $role !== 'client')
     staff.full_name as staff_name,
     s.price,
     a.date,
-    a.time
+    a.time, 
+    a.status
     FROM appointments a
     JOIN users u ON a.client_id = u.id
     JOIN users staff ON a.staff_id = staff.id
@@ -79,7 +92,10 @@ if(!$result || !$id || $role !== 'client')
     echo json_encode(
         [
             "status" => "success",
-            "data" => $appointments
+            "data" => [
+                "appointments" => $appointments,
+                "total" => $totalAppointments
+            ] 
         ]
     );
 

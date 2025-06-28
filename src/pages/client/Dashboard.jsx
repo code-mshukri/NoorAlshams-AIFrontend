@@ -4,8 +4,6 @@ import { Calendar, Clock, Star, TrendingUp, Plus } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { useQuery } from 'react-query'
 import CountUp from 'react-countup'
-import Header from '../../components/layout/Header'
-import Footer from '../../components/layout/Footer'
 import { useAuth } from '../../contexts/AuthContext'
 import { useLanguage } from '../../contexts/LanguageContext'
 import { bookingService } from '../../services/bookingService'
@@ -14,44 +12,45 @@ const ClientDashboard = () => {
   const { user } = useAuth()
   const { t } = useLanguage()
 
-  // Fetch user's bookings
-  const { data: bookingsData, isLoading } = useQuery(
-    'client-bookings',
-    () => bookingService.getBookings(),
+  // Fetch user's appointments
+  const { data: appointmentsData, isLoading } = useQuery(
+    'client-appointments',
+    () => bookingService.getBookings(1),
     {
       refetchOnWindowFocus: false,
     }
   )
 
-  const bookings = bookingsData?.data || []
-  const upcomingBookings = bookings.filter(b => ['confirmed', 'pending'].includes(b.status))
-  const completedBookings = bookings.filter(b => b.status === 'completed')
+  const appointments = appointmentsData?.data?.appointments || []
+
+  const upcomingAppointments = appointments.filter(b => ['confirmed', 'pending'].includes(b.status))
+  const completedAppointments = appointments.filter(b => b.status === 'completed')
 
   const stats = [
     {
       title: 'المواعيد القادمة',
-      value: upcomingBookings.length,
+      value: upcomingAppointments.length,
       icon: Calendar,
       color: 'text-blue-600',
       bgColor: 'bg-blue-100'
     },
     {
       title: 'إجمالي الحجوزات',
-      value: bookings.length,
+      value: appointments.length,
       icon: Clock,
       color: 'text-green-600',
       bgColor: 'bg-green-100'
     },
     {
       title: 'الخدمات المكتملة',
-      value: completedBookings.length,
+      value: completedAppointments.length,
       icon: Star,
       color: 'text-yellow-600',
       bgColor: 'bg-yellow-100'
     },
     {
       title: 'نقاط الولاء',
-      value: completedBookings.length * 10,
+      value: completedAppointments.length * 10,
       icon: TrendingUp,
       color: 'text-purple-600',
       bgColor: 'bg-purple-100'
@@ -84,8 +83,6 @@ const ClientDashboard = () => {
 
   return (
     <div className="min-h-screen gradient-bg">
-      <Header />
-      
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Welcome Section */}
         <motion.div
@@ -165,7 +162,7 @@ const ClientDashboard = () => {
           </div>
         </motion.div>
 
-        {/* Recent Bookings */}
+        {/* Recent Appointments */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -184,11 +181,11 @@ const ClientDashboard = () => {
               <div className="spinner mx-auto mb-4"></div>
               <p className="text-gray-600">جاري تحميل الحجوزات...</p>
             </div>
-          ) : bookings.length > 0 ? (
+          ) : appointments.length > 0 ? (
             <div className="space-y-4">
-              {bookings.slice(0, 3).map((booking) => (
+              {appointments.slice(0, 5).map((appointment) => (
                 <div
-                  key={booking.id}
+                  key={appointment.appointment_id}
                   className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
                 >
                   <div className="flex items-center space-x-4 space-x-reverse">
@@ -196,26 +193,32 @@ const ClientDashboard = () => {
                       <Star className="w-6 h-6 text-primary-200" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-gray-900">{booking.service_name}</h3>
+                      <h3 className="font-semibold text-gray-900">{appointment.service_name}</h3>
                       <p className="text-gray-600 text-sm">
-                        {booking.appointment_date} - {booking.appointment_time}
+                        التاريخ: {appointment.date} - الوقت: {appointment.time}
+                      </p>
+                      <p className="text-gray-600 text-sm">
+                        الموظف: {appointment.staff_name}
+                      </p>
+                      <p className="text-gray-600 text-sm">
+                        السعر: {appointment.price} شيكل
                       </p>
                     </div>
                   </div>
                   <div className="text-left">
                     <span className={`inline-block px-3 py-1 text-xs rounded-full font-medium ${
-                      booking.status === 'confirmed' 
-                        ? 'bg-green-100 text-green-800' 
-                        : booking.status === 'pending'
+                      appointment.status === 'confirmed'
+                        ? 'bg-green-100 text-green-800'
+                        : appointment.status === 'pending'
                         ? 'bg-yellow-100 text-yellow-800'
-                        : booking.status === 'completed'
+                        : appointment.status === 'completed'
                         ? 'bg-blue-100 text-blue-800'
                         : 'bg-red-100 text-red-800'
                     }`}>
-                      {booking.status === 'confirmed' && 'مؤكد'}
-                      {booking.status === 'pending' && 'في الانتظار'}
-                      {booking.status === 'completed' && 'مكتمل'}
-                      {booking.status === 'cancelled' && 'ملغي'}
+                      {appointment.status === 'confirmed' && 'مؤكد'}
+                      {appointment.status === 'pending' && 'في الانتظار'}
+                      {appointment.status === 'completed' && 'مكتمل'}
+                      {appointment.status === 'cancelled' && 'ملغي'}
                     </span>
                   </div>
                 </div>
@@ -233,8 +236,6 @@ const ClientDashboard = () => {
           )}
         </motion.div>
       </div>
-
-      <Footer />
     </div>
   )
 }

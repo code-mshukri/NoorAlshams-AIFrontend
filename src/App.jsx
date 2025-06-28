@@ -20,6 +20,7 @@ const About = React.lazy(() => import('./pages/About'))
 //const Testimonials = React.lazy(() => import('./pages/Testimonials'))
 const Contact = React.lazy(() => import('./pages/Contact'))
 const ClientDashboard = React.lazy(() => import('./pages/client/Dashboard'))
+const ClientAppointments = React.lazy(() => import('./pages/client/Appointments'))
 const ClientBooking = React.lazy(() => import('./pages/client/Booking'))
 const ClientProfile = React.lazy(() => import('./pages/client/Profile'))
 const AdminDashboard = React.lazy(() => import('./pages/admin/Dashboard'))
@@ -99,6 +100,15 @@ function App() {
                   </ProtectedRoute>
                 }
               />
+              <Route
+                path="/appointments"
+                element={
+                  <ProtectedRoute allowedRoles={['client']}>
+                    {renderMotionPage(ClientAppointments)}
+                  </ProtectedRoute>
+                }
+              />
+
               <Route
                 path="/booking"
                 element={
