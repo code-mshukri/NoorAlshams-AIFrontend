@@ -1,6 +1,6 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { motion } from 'framer-motion'
-import { Menu, Users, Calendar, DollarSign, TrendingUp, Clock } from 'lucide-react'
+import { Users, Calendar, DollarSign, TrendingUp, Clock } from 'lucide-react'
 import { useQuery } from 'react-query'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -10,11 +10,8 @@ import CountUp from 'react-countup'
 import Header from '../../components/layout/Header'
 import Footer from '../../components/layout/Footer'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
-import AdminSidebar from '../../components/layout/AdminSidebar'
 
 const Dashboard = () => {
-  const [isSidebarOpen, setSidebarOpen] = useState(false)
-
   const { data: statsData, isLoading } = useQuery(
     'admin-dashboard-stats',
     async () => {
@@ -90,29 +87,9 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen gradient-bg relative">
+    <div className="min-h-screen gradient-bg">
       <Header />
 
-      {/* Hamburger Toggle Button - Fixed position on the right */}
-      <button
-        onClick={() => setSidebarOpen(true)}
-        className="fixed top-20 right-4 z-40 bg-white border rounded-md p-2 shadow-md hover:bg-gray-50 transition-colors"
-      >
-        <Menu className="w-6 h-6 text-gray-700" />
-      </button>
-
-      {/* Overlay for mobile when sidebar is open */}
-      {isSidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
-      {/* Sidebar */}
-      <AdminSidebar isOpen={isSidebarOpen} onClose={() => setSidebarOpen(false)} />
-
-      {/* Main Content */}
       <div className="px-6 py-8">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -153,9 +130,8 @@ const Dashboard = () => {
           })}
         </div>
 
-        {/* Charts */}
+        {/* Charts Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          {/* Appointments Chart */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -174,7 +150,6 @@ const Dashboard = () => {
             </ResponsiveContainer>
           </motion.div>
 
-          {/* Services Pie Chart */}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -244,4 +219,3 @@ const Dashboard = () => {
 }
 
 export default Dashboard
-

@@ -159,45 +159,106 @@ const Header = () => {
         {/* Mobile Navigation */}
         <AnimatePresence>
           {isMenuOpen && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.2 }}
-              className="md:hidden"
-            >
-              <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-gray-50">
-                {navItems.map((item) => (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary-200 hover:bg-white"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    {item.name}
-                  </Link>
-                ))}
-                {!isAuthenticated && (
-                  <div className="pt-4 space-y-2">
-                    <Link
-                      to="/login"
-                      className="block w-full text-center btn-outline"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      {t('login')}
-                    </Link>
-                    <Link
-                      to="/register"
-                      className="block w-full text-center btn-primary"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      {t('register')}
-                    </Link>
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          )}
+  <motion.div
+    initial={{ opacity: 0, height: 0 }}
+    animate={{ opacity: 1, height: 'auto' }}
+    exit={{ opacity: 0, height: 0 }}
+    transition={{ duration: 0.2 }}
+    className="md:hidden"
+  >
+    <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-gray-50">
+      {/* Show default nav items */}
+      {navItems.map((item) => (
+        <Link
+          key={item.path}
+          to={item.path}
+          className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary-200 hover:bg-white"
+          onClick={() => setIsMenuOpen(false)}
+        >
+          {item.name}
+        </Link>
+      ))}
+
+      {/* Admin-only mobile links */}
+      {isAuthenticated && isAdmin && (
+        <>
+          <hr className="my-2 border-gray-200" />
+          <Link
+            to="/admin/profile"
+            className="block px-3 py-2 text-base text-gray-700 hover:bg-white hover:text-primary-200"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            الملف الشخصي
+          </Link>
+          <Link
+            to="/admin/users"
+            className="block px-3 py-2 text-base text-gray-700 hover:bg-white hover:text-primary-200"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            إدارة المستخدمين
+          </Link>
+          <Link
+            to="/admin/services"
+            className="block px-3 py-2 text-base text-gray-700 hover:bg-white hover:text-primary-200"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            إدارة الخدمات
+          </Link>
+          <Link
+            to="/admin/announcements"
+            className="block px-3 py-2 text-base text-gray-700 hover:bg-white hover:text-primary-200"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            إدارة الإعلانات
+          </Link>
+          <Link
+            to="/admin/appointments"
+            className="block px-3 py-2 text-base text-gray-700 hover:bg-white hover:text-primary-200"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            إدارة المواعيد
+          </Link>
+          <Link
+            to="/admin"
+            className="block px-3 py-2 text-base text-gray-700 hover:bg-white hover:text-primary-200"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            لوحة التحكم
+          </Link>
+          <button
+            onClick={() => {
+              setIsMenuOpen(false)
+              handleLogout()
+            }}
+            className="block w-full text-right px-3 py-2 text-base text-red-600 hover:bg-red-50"
+          >
+            تسجيل الخروج
+          </button>
+        </>
+      )}
+
+      {!isAuthenticated && (
+        <div className="pt-4 space-y-2">
+          <Link
+            to="/login"
+            className="block w-full text-center btn-outline"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            {t('login')}
+          </Link>
+          <Link
+            to="/register"
+            className="block w-full text-center btn-primary"
+            onClick={() => setIsMenuOpen(false)}
+          >
+            {t('register')}
+          </Link>
+        </div>
+      )}
+    </div>
+  </motion.div>
+)}
+
         </AnimatePresence>
       </div>
     </header>
