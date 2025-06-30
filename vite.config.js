@@ -13,7 +13,7 @@ export default defineConfig({
     port: 3000,
     proxy: {
       '/api': {
-        target: 'http://localhost/noor-alshams-palace/backend',
+        target: 'http://localhost/senior-nooralshams/api',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, '/api')
       }

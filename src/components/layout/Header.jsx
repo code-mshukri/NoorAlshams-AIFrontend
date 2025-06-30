@@ -23,33 +23,32 @@ const Header = () => {
   const isStaff = user?.role === 'staff'
 
   const navItems = [
-  { name: t('home'), path: '/' },
-  { name: t('services'), path: '/services' },
-  { name: t('about'), path: '/about' },
+    { name: t('home'), path: '/' },
+    { name: t('services'), path: '/services' },
+    { name: t('about'), path: '/about' },
 
-  ...(isAuthenticated && isClient
-    ? [
-        { name: 'حجوزاتي', path: '/client/appointments' },
-        { name: 'احجز موعد', path: '/client/booking' },
-        { name: 'حسابي', path: '/client/profile' },
-        {name: 'لوحة التحكم', path: '/client/dashboard'}
-      ]
-    : []),
+    ...(isAuthenticated && isClient
+      ? [
+          { name: 'حجوزاتي', path: '/client/appointments' },
+          { name: 'احجز موعد', path: '/client/booking' },
+          { name: 'حسابي', path: '/client/profile' },
+          { name: 'لوحة التحكم', path: '/client/dashboard' }
+        ]
+      : []),
 
-  ...(isAuthenticated && isAdmin
-  ? [{ name: t('testimonials'), path: '/testimonials' }]
-  : []),
+    ...(isAuthenticated && isAdmin
+      ? [{ name: t('testimonials'), path: '/testimonials' }]
+      : []),
 
-...(isAuthenticated && isStaff
-  ? [
-      { name: 'لوحة التحكم', path: '/staff/dashboard' },
-      { name: 'جدولي', path: '/staff/schedule' }
-    ]
-  : []),
+    ...(isAuthenticated && isStaff
+      ? [
+          { name: 'لوحة التحكم', path: '/staff/dashboard' },
+          { name: 'جدولي', path: '/staff/schedule' }
+        ]
+      : []),
 
-
-  { name: t('contact'), path: '/contact' },
-]
+    { name: t('contact'), path: '/contact' },
+  ]
 
   return (
     <header className="bg-white shadow-lg sticky top-0 z-40">
@@ -101,42 +100,99 @@ const Header = () => {
                 </button>
 
                 <AnimatePresence>
-                {isUserMenuOpen && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    transition={{ duration: 0.1 }}
-                    className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 ring-1 ring-black ring-opacity-5"
-                  >
-                    {(isClient || isStaff) && (
-                      <Link
-                        to={`/${user.role}/dashboard`}
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                        onClick={() => setIsUserMenuOpen(false)}
-                      >
-                        لوحة التحكم
-                      </Link>
-                    )}
-
-                    <Link
-                      to={`/${user.role}/profile`}
-                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                      onClick={() => setIsUserMenuOpen(false)}
-                    >
-                      الملف الشخصي
-                    </Link>
-
-                    <button
-                      onClick={handleLogout}
-                      className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
-                    >
-                      <LogOut className="w-4 h-4 mr-2" />
-                      تسجيل الخروج
-                    </button>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+  {isUserMenuOpen && (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      transition={{ duration: 0.1 }}
+      className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg py-1 ring-1 ring-black ring-opacity-5"
+    >
+      {isAdmin ? (
+        <>
+          <Link
+            to="/admin/profile"
+            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+            onClick={() => setIsUserMenuOpen(false)}
+          >
+            الملف الشخصي
+          </Link>
+          <Link
+            to="/admin/users"
+            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+            onClick={() => setIsUserMenuOpen(false)}
+          >
+            إدارة المستخدمين
+          </Link>
+          <Link
+            to="/admin/services"
+            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+            onClick={() => setIsUserMenuOpen(false)}
+          >
+            إدارة الخدمات
+          </Link>
+          <Link
+            to="/admin/announcements"
+            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+            onClick={() => setIsUserMenuOpen(false)}
+          >
+            إدارة الإعلانات
+          </Link>
+          <Link
+            to="/admin/appointments"
+            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+            onClick={() => setIsUserMenuOpen(false)}
+          >
+            إدارة المواعيد
+          </Link>
+          <Link
+            to="/admin"
+            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+            onClick={() => setIsUserMenuOpen(false)}
+          >
+            لوحة التحكم
+          </Link>
+          <button
+            onClick={() => {
+              setIsUserMenuOpen(false)
+              handleLogout()
+            }}
+            className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+          >
+            <LogOut className="w-4 h-4 mr-2" />
+            تسجيل الخروج
+          </button>
+        </>
+      ) : (
+        <>
+          {(isClient || isStaff) && (
+            <Link
+              to={`/${user.role}/dashboard`}
+              className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+              onClick={() => setIsUserMenuOpen(false)}
+            >
+              لوحة التحكم
+            </Link>
+          )}
+          <Link
+            to={`/${user.role}/profile`}
+            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+            onClick={() => setIsUserMenuOpen(false)}
+          >
+            الملف الشخصي
+          </Link>
+          <button
+            onClick={handleLogout}
+            className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+          >
+            <LogOut className="w-4 h-4 mr-2" />
+            تسجيل الخروج
+          </button>
+        </>
+      )}
+    </motion.div>
+  )}
+</AnimatePresence>
 
               </div>
             ) : (
@@ -159,106 +215,62 @@ const Header = () => {
         {/* Mobile Navigation */}
         <AnimatePresence>
           {isMenuOpen && (
-  <motion.div
-    initial={{ opacity: 0, height: 0 }}
-    animate={{ opacity: 1, height: 'auto' }}
-    exit={{ opacity: 0, height: 0 }}
-    transition={{ duration: 0.2 }}
-    className="md:hidden"
-  >
-    <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-gray-50">
-      {/* Show default nav items */}
-      {navItems.map((item) => (
-        <Link
-          key={item.path}
-          to={item.path}
-          className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary-200 hover:bg-white"
-          onClick={() => setIsMenuOpen(false)}
-        >
-          {item.name}
-        </Link>
-      ))}
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.2 }}
+              className="md:hidden"
+            >
+              <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-gray-50">
+                {/* Common links */}
+                {navItems.map((item) => (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary-200 hover:bg-white"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    {item.name}
+                  </Link>
+                ))}
 
-      {/* Admin-only mobile links */}
-      {isAuthenticated && isAdmin && (
-        <>
-          <hr className="my-2 border-gray-200" />
-          <Link
-            to="/admin/profile"
-            className="block px-3 py-2 text-base text-gray-700 hover:bg-white hover:text-primary-200"
-            onClick={() => setIsMenuOpen(false)}
-          >
-            الملف الشخصي
-          </Link>
-          <Link
-            to="/admin/users"
-            className="block px-3 py-2 text-base text-gray-700 hover:bg-white hover:text-primary-200"
-            onClick={() => setIsMenuOpen(false)}
-          >
-            إدارة المستخدمين
-          </Link>
-          <Link
-            to="/admin/services"
-            className="block px-3 py-2 text-base text-gray-700 hover:bg-white hover:text-primary-200"
-            onClick={() => setIsMenuOpen(false)}
-          >
-            إدارة الخدمات
-          </Link>
-          <Link
-            to="/admin/announcements"
-            className="block px-3 py-2 text-base text-gray-700 hover:bg-white hover:text-primary-200"
-            onClick={() => setIsMenuOpen(false)}
-          >
-            إدارة الإعلانات
-          </Link>
-          <Link
-            to="/admin/appointments"
-            className="block px-3 py-2 text-base text-gray-700 hover:bg-white hover:text-primary-200"
-            onClick={() => setIsMenuOpen(false)}
-          >
-            إدارة المواعيد
-          </Link>
-          <Link
-            to="/admin"
-            className="block px-3 py-2 text-base text-gray-700 hover:bg-white hover:text-primary-200"
-            onClick={() => setIsMenuOpen(false)}
-          >
-            لوحة التحكم
-          </Link>
-          <button
-            onClick={() => {
-              setIsMenuOpen(false)
-              handleLogout()
-            }}
-            className="block w-full text-right px-3 py-2 text-base text-red-600 hover:bg-red-50"
-          >
-            تسجيل الخروج
-          </button>
-        </>
-      )}
+                {/* Admin-only mobile section */}
+                {isAuthenticated && isAdmin && (
+                  <>
+                    <hr className="my-2 border-gray-200" />
+                    <Link to="/admin/profile" className="block px-3 py-2 text-base text-gray-700 hover:bg-white hover:text-primary-200" onClick={() => setIsMenuOpen(false)}>الملف الشخصي</Link>
+                    <Link to="/admin/users" className="block px-3 py-2 text-base text-gray-700 hover:bg-white hover:text-primary-200" onClick={() => setIsMenuOpen(false)}>إدارة المستخدمين</Link>
+                    <Link to="/admin/services" className="block px-3 py-2 text-base text-gray-700 hover:bg-white hover:text-primary-200" onClick={() => setIsMenuOpen(false)}>إدارة الخدمات</Link>
+                    <Link to="/admin/announcements" className="block px-3 py-2 text-base text-gray-700 hover:bg-white hover:text-primary-200" onClick={() => setIsMenuOpen(false)}>إدارة الإعلانات</Link>
+                    <Link to="/admin/appointments" className="block px-3 py-2 text-base text-gray-700 hover:bg-white hover:text-primary-200" onClick={() => setIsMenuOpen(false)}>إدارة المواعيد</Link>
+                    <Link to="/admin" className="block px-3 py-2 text-base text-gray-700 hover:bg-white hover:text-primary-200" onClick={() => setIsMenuOpen(false)}>لوحة التحكم</Link>
+                    <button onClick={() => { setIsMenuOpen(false); handleLogout() }} className="block w-full text-right px-3 py-2 text-base text-red-600 hover:bg-red-50">تسجيل الخروج</button>
+                  </>
+                )}
 
-      {!isAuthenticated && (
-        <div className="pt-4 space-y-2">
-          <Link
-            to="/login"
-            className="block w-full text-center btn-outline"
-            onClick={() => setIsMenuOpen(false)}
-          >
-            {t('login')}
-          </Link>
-          <Link
-            to="/register"
-            className="block w-full text-center btn-primary"
-            onClick={() => setIsMenuOpen(false)}
-          >
-            {t('register')}
-          </Link>
-        </div>
-      )}
-    </div>
-  </motion.div>
-)}
-
+                {/* Guest options */}
+                {!isAuthenticated && (
+                  <div className="pt-4 space-y-2">
+                    <Link
+                      to="/login"
+                      className="block w-full text-center btn-outline"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      {t('login')}
+                    </Link>
+                    <Link
+                      to="/register"
+                      className="block w-full text-center btn-primary"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      {t('register')}
+                    </Link>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
         </AnimatePresence>
       </div>
     </header>

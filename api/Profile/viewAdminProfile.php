@@ -1,10 +1,13 @@
 <?php
-session_start();
+
 header("Content-Type: application/json; charset=UTF-8");
 include (__DIR__ . '/../../includes/conf.php');
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
-$admin_id = $_POST['user_id'] ?? $_SESSION['user_id'] ?? null;
-$role = $_POST['role'] ?? $_SESSION['role'] ?? null;
+$admin_id = $_SESSION['user_id'] ?? $_POST['user_id'] ??  null;
+$role = $_SESSION['role'] ?? $_POST['role'] ??  null;
 
 if (!$admin_id || $role !== 'admin') {
     echo json_encode(["status" => "error", "message" => "Unauthorized"]);

@@ -1,4 +1,5 @@
 <?php
+session_start();
 include(__DIR__ . '/../../includes/conf.php');
 header("Content-Type: application/json");
 
@@ -7,19 +8,35 @@ try {
     $offset = 0;
     $isPaginated = false;
 
+    $role = $_SESSION['role'] ?? 'guest'; // fallback to guest
+
     if (isset($_GET['page']) && is_numeric($_GET['page'])) {
         $isPaginated = true;
         $page_num = intval($_GET['page']);
         $offset = ($page_num - 1) * $limit;
     }
 
-    if ($isPaginated) {
-        $sql = "SELECT * FROM services WHERE is_active = 1 LIMIT ? OFFSET ?";
-        $stmt = $conn->prepare($sql);
-        $stmt->bind_param("ii", $limit, $offset);
+    // Admin sees all services (active + inactive)
+    if ($role === 'admin') {
+        if ($isPaginated) {
+            $sql = "SELECT * FROM services LIMIT ? OFFSET ?";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("ii", $limit, $offset);
+        } else {
+            $sql = "SELECT * FROM services";
+            $stmt = $conn->prepare($sql);
+        }
+
     } else {
-        $sql = "SELECT * FROM services WHERE is_active = 1";
-        $stmt = $conn->prepare($sql);
+        // Clients and staff see only active services
+        if ($isPaginated) {
+            $sql = "SELECT * FROM services WHERE is_active = 1 LIMIT ? OFFSET ?";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("ii", $limit, $offset);
+        } else {
+            $sql = "SELECT * FROM services WHERE is_active = 1";
+            $stmt = $conn->prepare($sql);
+        }
     }
 
     $stmt->execute();

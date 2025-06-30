@@ -14,16 +14,26 @@ class CsrfHelper
     }
 
     public static function validateToken()
-    {
-        $tokenFromPost = $_POST['csrf_token'] ?? '';
+{
+    if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+    $sessionToken = $_SESSION['csrf_token'] ?? '';
 
-        if (!isset($_SESSION['csrf_token']) || $tokenFromPost !== $_SESSION['csrf_token']) {
-            echo json_encode([
-                "status" => "error",
-                "message" => "Invalid CSRF token."
-            ]);
-            exit;
-        }
+    // Check POST body
+    $token = $_POST['csrf_token'] ?? null;
+
+    // Or check HTTP header
+    if (!$token && isset($_SERVER['HTTP_X_CSRF_TOKEN'])) {
+        $token = $_SERVER['HTTP_X_CSRF_TOKEN'];
     }
+
+    if (!$token || $token !== $sessionToken) {
+        echo json_encode(["status" => "error", "message" => "Invalid CSRF token."]);
+        http_response_code(403);
+        exit();
+    }
+}
+
 }
 ?>

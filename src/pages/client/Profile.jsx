@@ -266,7 +266,7 @@ const ClientProfile = () => {
         </motion.div>
       </div>
 
-      <Footer />
+      <Footer/>
     </div>
   )
 }
