@@ -1,25 +1,27 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Users, Calendar, DollarSign, TrendingUp, Clock, Star } from 'lucide-react'
+import { Menu, Users, Calendar, DollarSign, TrendingUp, Clock } from 'lucide-react'
 import { useQuery } from 'react-query'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts'
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell
+} from 'recharts'
 import CountUp from 'react-countup'
 import Header from '../../components/layout/Header'
 import Footer from '../../components/layout/Footer'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
+import AdminSidebar from '../../components/layout/AdminSidebar'
 
-const AdminDashboard = () => {
-  // Fetch dashboard statistics
+const Dashboard = () => {
+  const [isSidebarOpen, setSidebarOpen] = useState(false)
+
   const { data: statsData, isLoading } = useQuery(
     'admin-dashboard-stats',
     async () => {
-      // This would connect to your backend API
       const response = await fetch('/api/admin/dashboardStats.php')
       return response.json()
     },
-    {
-      refetchOnWindowFocus: false,
-    }
+    { refetchOnWindowFocus: false }
   )
 
   const stats = statsData?.data || {}
@@ -60,7 +62,6 @@ const AdminDashboard = () => {
     }
   ]
 
-  // Sample data for charts
   const appointmentData = [
     { name: 'السبت', appointments: 12 },
     { name: 'الأحد', appointments: 19 },
@@ -89,11 +90,30 @@ const AdminDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen gradient-bg">
+    <div className="min-h-screen gradient-bg relative">
       <Header />
-      
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
+
+      {/* Hamburger Toggle Button - Fixed position on the right */}
+      <button
+        onClick={() => setSidebarOpen(true)}
+        className="fixed top-20 right-4 z-40 bg-white border rounded-md p-2 shadow-md hover:bg-gray-50 transition-colors"
+      >
+        <Menu className="w-6 h-6 text-gray-700" />
+      </button>
+
+      {/* Overlay for mobile when sidebar is open */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <AdminSidebar isOpen={isSidebarOpen} onClose={() => setSidebarOpen(false)} />
+
+      {/* Main Content */}
+      <div className="px-6 py-8">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -133,7 +153,7 @@ const AdminDashboard = () => {
           })}
         </div>
 
-        {/* Charts Section */}
+        {/* Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           {/* Appointments Chart */}
           <motion.div
@@ -154,7 +174,7 @@ const AdminDashboard = () => {
             </ResponsiveContainer>
           </motion.div>
 
-          {/* Services Distribution */}
+          {/* Services Pie Chart */}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -192,7 +212,7 @@ const AdminDashboard = () => {
         >
           <h3 className="text-xl font-bold text-gray-900 mb-6">النشاط الأخير</h3>
           <div className="space-y-4">
-            {stats.recent_appointments?.slice(0, 5).map((appointment, index) => (
+            {stats.recent_appointments?.slice(0, 5).map((appointment) => (
               <div key={appointment.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                 <div className="flex items-center space-x-4 space-x-reverse">
                   <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
@@ -223,4 +243,5 @@ const AdminDashboard = () => {
   )
 }
 
-export default AdminDashboard
+export default Dashboard
+

@@ -1,8 +1,9 @@
 import api from './api'
 
 export const serviceService = {
-  async getServices(page = 1) {
-    return await api.get(`/services/viewServices.php?page=${page}`)
+ async getServices() {
+    // No pagination param, fetches all active services
+    return await api.get(`/services/viewServices.php`)
   },
 
   async getService(id) {

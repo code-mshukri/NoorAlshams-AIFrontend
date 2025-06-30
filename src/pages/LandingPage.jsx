@@ -7,6 +7,9 @@ import { Swiper, SwiperSlide } from 'swiper/react'
 import { Autoplay, Pagination, EffectFade } from 'swiper/modules'
 import { Star, ArrowLeft, MapPin, Phone, Mail, Clock } from 'lucide-react'
 import CountUp from 'react-countup'
+import Header from '../components/layout/Header'
+import Footer from '../components/layout/Footer'
+
 
 import { useLanguage } from '../contexts/LanguageContext'
 import 'swiper/css'
@@ -83,7 +86,7 @@ useEffect(() => {
 
   return (
     <div className="min-h-screen">
-     
+     <Header/>
       
       {/* Hero Section with Slider */}
       <section className="relative h-screen overflow-hidden">
@@ -484,7 +487,7 @@ useEffect(() => {
         </div>
       </section>
 
-   
+   <Footer/>
     </div>
   )
 }

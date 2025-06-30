@@ -3,13 +3,12 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from './contexts/AuthContext'
 import { useLanguage } from './contexts/LanguageContext'
-import Banner from './components/ui/Banner';
+import Banner from './components/ui/Banner'
 import LoadingSpinner from './components/ui/LoadingSpinner'
 import ErrorBoundary from './components/ui/ErrorBoundary'
 import WhatsAppButton from './components/ui/WhatsAppButton'
 import Header from './components/layout/Header'
-import Footer from './components/layout/Footer' 
-
+import Footer from './components/layout/Footer'
 
 // Lazy load pages
 const LandingPage = React.lazy(() => import('./pages/LandingPage'))
@@ -17,8 +16,8 @@ const Login = React.lazy(() => import('./pages/auth/Login'))
 const Register = React.lazy(() => import('./pages/auth/Register'))
 const Services = React.lazy(() => import('./pages/Services'))
 const About = React.lazy(() => import('./pages/About'))
-//const Testimonials = React.lazy(() => import('./pages/Testimonials'))
 const Contact = React.lazy(() => import('./pages/Contact'))
+const MessagesPage = React.lazy(() => import('./pages/MessagesPage'))
 const ClientDashboard = React.lazy(() => import('./pages/client/Dashboard'))
 const ClientAppointments = React.lazy(() => import('./pages/client/Appointments'))
 const ClientBooking = React.lazy(() => import('./pages/client/Booking'))
@@ -26,8 +25,11 @@ const ClientProfile = React.lazy(() => import('./pages/client/Profile'))
 const AdminDashboard = React.lazy(() => import('./pages/admin/Dashboard'))
 const AdminUsers = React.lazy(() => import('./pages/admin/Users'))
 const AdminServices = React.lazy(() => import('./pages/admin/Services'))
+const AdminAppointments = React.lazy(() => import('./pages/admin/Appointments'))
+const AdminProfile = React.lazy(() => import('./pages/admin/Profile'))
 const StaffDashboard = React.lazy(() => import('./pages/staff/Dashboard'))
 const StaffSchedule = React.lazy(() => import('./pages/staff/Schedule'))
+const StaffProfile = React.lazy(() => import('./pages/staff/Profile'))
 
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   const { user, isAuthenticated, loading } = useAuth()
@@ -35,7 +37,7 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   if (loading) return <LoadingSpinner />
   if (!isAuthenticated) return <Navigate to="/login" replace />
   if (allowedRoles.length && !allowedRoles.includes(user?.role)) {
-    return <Navigate to="/dashboard" replace />
+    return <Navigate to="/" replace />
   }
 
   return children
@@ -56,11 +58,10 @@ const pageTransition = {
 function App() {
   const { language } = useLanguage()
 
-  React.useEffect(() => {
+  useEffect(() => {
     document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr'
     document.documentElement.lang = language
   }, [language])
-
 
   const renderMotionPage = (Component) => (
     <motion.div
@@ -78,7 +79,7 @@ function App() {
     <ErrorBoundary>
       <div className="min-h-screen gradient-bg">
         <Banner />
-        <Header/>
+
         <AnimatePresence mode="wait">
           <Suspense fallback={<LoadingSpinner />}>
             <Routes>
@@ -88,12 +89,21 @@ function App() {
               <Route path="/register" element={renderMotionPage(Register)} />
               <Route path="/services" element={renderMotionPage(Services)} />
               <Route path="/about" element={renderMotionPage(About)} />
-              {/*<Route path="/testimonials" element={renderMotionPage(Testimonials)} />*/}
               <Route path="/contact" element={renderMotionPage(Contact)} />
 
-              {/* Client Routes */}
+              {/* Messages Route - Available to all authenticated users */}
               <Route
-                path="/dashboard"
+                path="/messages"
+                element={
+                  <ProtectedRoute allowedRoles={['client', 'staff', 'admin']}>
+                    {renderMotionPage(MessagesPage)}
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Updated Client Routes */}
+              <Route
+                path="/client/dashboard"
                 element={
                   <ProtectedRoute allowedRoles={['client']}>
                     {renderMotionPage(ClientDashboard)}
@@ -101,16 +111,15 @@ function App() {
                 }
               />
               <Route
-                path="/appointments"
+                path="/client/appointments"
                 element={
                   <ProtectedRoute allowedRoles={['client']}>
                     {renderMotionPage(ClientAppointments)}
                   </ProtectedRoute>
                 }
               />
-
               <Route
-                path="/booking"
+                path="/client/booking"
                 element={
                   <ProtectedRoute allowedRoles={['client']}>
                     {renderMotionPage(ClientBooking)}
@@ -118,7 +127,7 @@ function App() {
                 }
               />
               <Route
-                path="/profile"
+                path="/client/profile"
                 element={
                   <ProtectedRoute allowedRoles={['client']}>
                     {renderMotionPage(ClientProfile)}
@@ -127,55 +136,80 @@ function App() {
               />
 
               {/* Admin Routes */}
-              <Route
-                path="/admin"
-                element={
-                  <ProtectedRoute allowedRoles={['admin']}>
-                    {renderMotionPage(AdminDashboard)}
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/users"
-                element={
-                  <ProtectedRoute allowedRoles={['admin']}>
-                    {renderMotionPage(AdminUsers)}
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/services"
-                element={
-                  <ProtectedRoute allowedRoles={['admin']}>
-                    {renderMotionPage(AdminServices)}
-                  </ProtectedRoute>
-                }
-              />
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  {renderMotionPage(AdminDashboard)}
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/users"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  {renderMotionPage(AdminUsers)}
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/services"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  {renderMotionPage(AdminServices)}
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/appointments"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  {renderMotionPage(AdminAppointments)}
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/profile"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  {renderMotionPage(AdminProfile)}
+                </ProtectedRoute>
+              }
+            />
 
-              {/* Staff Routes */}
-              <Route
-                path="/staff"
-                element={
-                  <ProtectedRoute allowedRoles={['staff']}>
-                    {renderMotionPage(StaffDashboard)}
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/staff/schedule"
-                element={
-                  <ProtectedRoute allowedRoles={['staff']}>
-                    {renderMotionPage(StaffSchedule)}
-                  </ProtectedRoute>
-                }
-              />
+                          {/* Staff Routes */}
+            <Route
+              path="/staff"
+              element={
+                <ProtectedRoute allowedRoles={['staff']}>
+                  {renderMotionPage(StaffDashboard)}
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/staff/schedule"
+              element={
+                <ProtectedRoute allowedRoles={['staff']}>
+                  {renderMotionPage(StaffSchedule)}
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/staff/profile"
+              element={
+                <ProtectedRoute allowedRoles={['staff']}>
+                  {renderMotionPage(StaffProfile)}
+                </ProtectedRoute>
+              }
+            />
+
 
               {/* Fallback */}
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Suspense>
         </AnimatePresence>
-    <Footer/>
+
         <WhatsAppButton />
       </div>
     </ErrorBoundary>

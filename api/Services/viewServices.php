@@ -1,30 +1,44 @@
 <?php
-include(__DIR__ . '/../../includes/conf.php');  //Connects with the database
-header("Content-Type: application/json");       //Prepares the POSTMAN to deal with JSON format not HTML
+include(__DIR__ . '/../../includes/conf.php');
+header("Content-Type: application/json");
 
- $page_num = isset($_GET['page']) && is_numeric($_GET['page']) ? intval($_GET['page']) : 1;  //This is ternary operator, it's syntax is: condition ? value_if_true : value_if_false
+try {
     $limit = 10;
-    $offset = ($page_num - 1) * $limit;
+    $offset = 0;
+    $isPaginated = false;
 
-$sql = "SELECT * FROM services WHERE is_active = 1 LIMIT ? OFFSET ?";       //Selects id, name and description from the services table
-$stmt = $conn->prepare($sql);            //Prepares the SQL statement
-$stmt->bind_param("ii", $limit, $offset); //Binds the parameters to the SQL statement
-$stmt->execute();                       //Executes the SQL statement
-$result = $stmt->get_result();         //Returns mysqli object to variable $result
+    if (isset($_GET['page']) && is_numeric($_GET['page'])) {
+        $isPaginated = true;
+        $page_num = intval($_GET['page']);
+        $offset = ($page_num - 1) * $limit;
+    }
 
-if($result->num_rows > 0)               //If there is at least one row
-{
-    $services = [];                     //Crete the array of services
+    if ($isPaginated) {
+        $sql = "SELECT * FROM services WHERE is_active = 1 LIMIT ? OFFSET ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("ii", $limit, $offset);
+    } else {
+        $sql = "SELECT * FROM services WHERE is_active = 1";
+        $stmt = $conn->prepare($sql);
+    }
 
-    while($row = $result->fetch_assoc())            //In this loop we are fetching each row and store it into the services array by using this condition
-    {
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    $services = [];
+    while ($row = $result->fetch_assoc()) {
         $services[] = $row;
     }
-    echo json_encode(["status" => "success", "services" => $services]);
-}
-else{
-    echo json_encode(["status" => "error", "message" => "No services found"]);
+
+    echo json_encode([
+        "status" => "success",
+        "data" => $services
+    ]);
+} catch (Exception $e) {
+    echo json_encode([
+        "status" => "error",
+        "message" => "Something went wrong: " . $e->getMessage()
+    ]);
 }
 
 $conn->close();
-?>

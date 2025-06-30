@@ -1,12 +1,17 @@
 import React from 'react'
 import { useLanguage } from '../contexts/LanguageContext'
+import Header from '../components/layout/Header'
+import Footer from '../components/layout/Footer'
 
 
 const Contact = () => {
   const { t } = useLanguage()
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-20">
+    <div>
+      <Header/>
+      <div className="max-w-4xl mx-auto px-4 py-20">
+      
       <h1 className="text-4xl font-bold text-center mb-8">{t('contact')}</h1>
 
       <form className="space-y-6">
@@ -28,6 +33,9 @@ const Contact = () => {
         <button type="submit" className="btn-primary w-full">إرسال</button>
       </form>
     </div>
+    <Footer/>
+    </div>
+    
   )
 }
 

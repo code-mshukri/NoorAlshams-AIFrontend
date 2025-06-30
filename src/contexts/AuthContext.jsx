@@ -61,52 +61,52 @@ export const AuthProvider = ({ children }) => {
   }, [])
 
   const login = async ({ email, password }) => {
-  try {
-    dispatch({ type: 'AUTH_START' });
+    try {
+      dispatch({ type: 'AUTH_START' })
 
-    const response = await axios.post(
-      'http://localhost/senior-nooralshams/api/auth/login.php',
-      { email, password },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        withCredentials: true,
+      const response = await axios.post(
+        'http://localhost/senior-nooralshams/api/auth/login.php',
+        { email, password },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          withCredentials: true,
+        }
+      )
+
+      const res = response.data
+
+      if (res.status === 'success') {
+        const userData = {
+          id: res.user.id,
+          full_name: res.user.full_name,
+          role: res.user.role,
+          email: res.user.email,
+          csrf_token: res.csrf_token,
+        }
+
+        localStorage.setItem('auth_token', res.csrf_token)
+        localStorage.setItem('user_data', JSON.stringify(userData))
+
+        dispatch({ type: 'AUTH_SUCCESS', payload: userData })
+        toast.success('تم تسجيل الدخول بنجاح!')
+        return { success: true, user: userData } // ✅ RETURN FULL USER OBJECT
+      } else {
+        const errorMsg = res.message || 'فشل تسجيل الدخول'
+        dispatch({ type: 'AUTH_FAILURE', payload: errorMsg })
+        toast.error(errorMsg)
+        return { success: false, error: errorMsg }
       }
-    );
 
-    const res = response.data;
-
-    if (res.status === 'success') {
-      const userData = {
-        full_name: res.full_name,
-        role: res.role,
-        csrf_token: res.csrf_token,
-      };
-
-      localStorage.setItem('auth_token', res.csrf_token);
-      localStorage.setItem('user_data', JSON.stringify(userData));
-
-      dispatch({ type: 'AUTH_SUCCESS', payload: userData });
-      toast.success('تم تسجيل الدخول بنجاح!');
-      return { success: true };
-    } else {
-      // Handles known error messages like incorrect password
-      const errorMsg = res.message || 'فشل تسجيل الدخول';
-      dispatch({ type: 'AUTH_FAILURE', payload: errorMsg });
-      toast.error(errorMsg);
-      return { success: false, error: errorMsg };
+    } catch (error) {
+      console.error('Login Error:', error)
+      const fallbackMessage = 'حدث خطأ في الاتصال بالخادم'
+      dispatch({ type: 'AUTH_FAILURE', payload: fallbackMessage })
+      toast.error(fallbackMessage)
+      return { success: false, error: fallbackMessage }
     }
-
-  } catch (error) {
-    console.error('Login Error:', error);
-    const fallbackMessage = 'حدث خطأ في الاتصال بالخادم';
-    dispatch({ type: 'AUTH_FAILURE', payload: fallbackMessage });
-    toast.error(fallbackMessage);
-    return { success: false, error: fallbackMessage };
   }
-};
-
 
   const register = async (userData) => {
     try {

@@ -3,6 +3,10 @@ import axios from 'axios'
 import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
+import Header from '../components/layout/Header'
+import Footer from '../components/layout/Footer'
+
+
 
 const Services = () => {
   const [services, setServices] = useState([])
@@ -11,8 +15,8 @@ const Services = () => {
     axios
       .get('http://localhost/senior-nooralshams/api/Services/viewServices.php')
       .then((response) => {
-        if (Array.isArray(response.data.services)) {
-          setServices(response.data.services)
+        if (Array.isArray(response.data.data)) {
+          setServices(response.data.data)
         } else {
           console.error('Invalid services format:', response.data)
         }
@@ -30,7 +34,9 @@ const Services = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-20">
+    <div>
+      <Header/>
+      <div className="min-h-screen bg-gray-50 py-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 50 }}
@@ -86,6 +92,9 @@ const Services = () => {
         </div>
       </div>
     </div>
+    <Footer/>
+    </div>
+    
   )
 }
 

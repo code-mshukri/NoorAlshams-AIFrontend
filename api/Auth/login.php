@@ -49,14 +49,18 @@ if($result->num_rows === 1){
 
         $conn->close();
 
-        echo json_encode(
-            ["status" => "success",
-             "message" => "Login Successful",
-              "full_name" => $user['full_name'],
-               "role" => $user['role'],
-                "csrf_token" => $csrf_token
-        ]
-    );
+        echo json_encode([
+    "status" => "success",
+    "message" => "Login Successful",
+    "user" => [
+        "id" => $user['id'],
+        "full_name" => $user['full_name'],
+        "role" => $user['role'],
+        "email" => $email
+    ],
+    "csrf_token" => $csrf_token
+]);
+
     }
     else{
         echo json_encode(["status" => "error", "message" => "Incorrect password"]);

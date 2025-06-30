@@ -13,7 +13,7 @@ const Login = () => {
   const { login, loading } = useAuth()
   const { t } = useLanguage()
   const navigate = useNavigate()
-  
+
   const {
     register,
     handleSubmit,
@@ -23,13 +23,19 @@ const Login = () => {
   const onSubmit = async (data) => {
     const result = await login(data)
     if (result.success) {
-      navigate('/dashboard')
+      const role = result.user?.role || ''
+      if (role === 'admin') {
+        navigate('/admin')
+      } else if (role === 'staff') {
+        navigate('/staff')
+      } else {
+        navigate('/client/dashboard')
+      }
     }
   }
 
   return (
     <div className="min-h-screen gradient-bg flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      {/* Back to Home */}
       <Link
         to="/"
         className="absolute top-6 right-6 flex items-center space-x-2 space-x-reverse text-gray-600 hover:text-primary-200 transition-colors duration-200"
@@ -44,7 +50,6 @@ const Login = () => {
         transition={{ duration: 0.5 }}
         className="max-w-md w-full space-y-8"
       >
-        {/* Logo and Header */}
         <div className="text-center">
           <motion.div
             initial={{ scale: 0 }}
@@ -58,15 +63,10 @@ const Login = () => {
               className="w-24 h-24 rounded-full object-cover mx-auto"
             />
           </motion.div>
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">
-            مرحباً بعودتك
-          </h2>
-          <p className="text-gray-600">
-            سجلي دخولك للوصول إلى حسابك
-          </p>
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">مرحباً بعودتك</h2>
+          <p className="text-gray-600">سجلي دخولك للوصول إلى حسابك</p>
         </div>
 
-        {/* Login Form */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -74,7 +74,6 @@ const Login = () => {
           className="card p-8"
         >
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            {/* Email Field */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                 البريد الإلكتروني
@@ -96,7 +95,6 @@ const Login = () => {
               )}
             </div>
 
-            {/* Password Field */}
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
                 كلمة المرور
@@ -127,7 +125,6 @@ const Login = () => {
               )}
             </div>
 
-            {/* Forgot Password */}
             <div className="text-left">
               <Link
                 to="/forgot-password"
@@ -137,7 +134,6 @@ const Login = () => {
               </Link>
             </div>
 
-            {/* Submit Button */}
             <button
               type="submit"
               disabled={loading}
@@ -147,7 +143,6 @@ const Login = () => {
             </button>
           </form>
 
-          {/* Register Link */}
           <div className="mt-6 text-center">
             <p className="text-gray-600">
               ليس لديك حساب؟{' '}

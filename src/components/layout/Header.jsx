@@ -18,14 +18,38 @@ const Header = () => {
     navigate('/')
   }
 
+  const isClient = user?.role === 'client'
+  const isAdmin = user?.role === 'admin'
+  const isStaff = user?.role === 'staff'
+
   const navItems = [
   { name: t('home'), path: '/' },
   { name: t('services'), path: '/services' },
   { name: t('about'), path: '/about' },
-  { name: t('testimonials'), path: '/testimonials' },
+
+  ...(isAuthenticated && isClient
+    ? [
+        { name: 'حجوزاتي', path: '/client/appointments' },
+        { name: 'احجز موعد', path: '/client/booking' },
+        { name: 'حسابي', path: '/client/profile' },
+        {name: 'لوحة التحكم', path: '/client/dashboard'}
+      ]
+    : []),
+
+  ...(isAuthenticated && isAdmin
+  ? [{ name: t('testimonials'), path: '/testimonials' }]
+  : []),
+
+...(isAuthenticated && isStaff
+  ? [
+      { name: 'لوحة التحكم', path: '/staff/dashboard' },
+      { name: 'جدولي', path: '/staff/schedule' }
+    ]
+  : []),
+
+
   { name: t('contact'), path: '/contact' },
 ]
-
 
   return (
     <header className="bg-white shadow-lg sticky top-0 z-40">
@@ -33,11 +57,7 @@ const Header = () => {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2 space-x-reverse">
-            <img 
-              src={logo}
-              alt="قصر نور الشمس" 
-              className="h-10 w-10 object-contain"
-            />
+            <img src={logo} alt="قصر نور الشمس" className="h-10 w-10 object-contain" />
             <span className="text-xl font-bold text-gradient">قصر نور الشمس</span>
           </Link>
 
@@ -81,47 +101,48 @@ const Header = () => {
                 </button>
 
                 <AnimatePresence>
-                  {isUserMenuOpen && (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.95 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.95 }}
-                      transition={{ duration: 0.1 }}
-                      className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 ring-1 ring-black ring-opacity-5"
+                {isUserMenuOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ duration: 0.1 }}
+                    className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 ring-1 ring-black ring-opacity-5"
+                  >
+                    {(isClient || isStaff) && (
+                      <Link
+                        to={`/${user.role}/dashboard`}
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={() => setIsUserMenuOpen(false)}
+                      >
+                        لوحة التحكم
+                      </Link>
+                    )}
+
+                    <Link
+                      to={`/${user.role}/profile`}
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => setIsUserMenuOpen(false)}
                     >
-                      <Link
-                        to="/dashboard"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                        onClick={() => setIsUserMenuOpen(false)}
-                      >
-                        {t('dashboard')}
-                      </Link>
-                      <Link
-                        to="/profile"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                        onClick={() => setIsUserMenuOpen(false)}
-                      >
-                        {t('profile')}
-                      </Link>
-                      <button
-                        onClick={handleLogout}
-                        className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
-                      >
-                        <LogOut className="w-4 h-4 mr-2" />
-                        {t('logout')}
-                      </button>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                      الملف الشخصي
+                    </Link>
+
+                    <button
+                      onClick={handleLogout}
+                      className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                    >
+                      <LogOut className="w-4 h-4 mr-2" />
+                      تسجيل الخروج
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
               </div>
             ) : (
               <div className="hidden md:flex space-x-4 space-x-reverse">
-                <Link to="/login" className="btn-outline">
-                  {t('login')}
-                </Link>
-                <Link to="/register" className="btn-primary">
-                  {t('register')}
-                </Link>
+                <Link to="/login" className="btn-outline">{t('login')}</Link>
+                <Link to="/register" className="btn-primary">{t('register')}</Link>
               </div>
             )}
 
@@ -156,7 +177,6 @@ const Header = () => {
                     {item.name}
                   </Link>
                 ))}
-                
                 {!isAuthenticated && (
                   <div className="pt-4 space-y-2">
                     <Link
