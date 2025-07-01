@@ -26,42 +26,32 @@ const AdminServices = () => {
   const { data: servicesData, isLoading } = useQuery('admin-services', serviceService.getServices)
 
   const createServiceMutation = useMutation(
-    async (formData) => {
-      const csrfToken = localStorage.getItem('auth_token')
-      formData.append('role', 'admin')
-      formData.append('user_id', localStorage.getItem('user_id'))
-      formData.append('csrf_token', csrfToken)
-      return await serviceService.createService(formData)
+  async (data) => await serviceService.createService(data),
+  {
+    onSuccess: () => {
+      toast.success('تم إضافة الخدمة بنجاح')
+      queryClient.invalidateQueries('admin-services')
+      setShowAddModal(false)
+      reset()
     },
-    {
-      onSuccess: () => {
-        toast.success('تم إضافة الخدمة بنجاح')
-        queryClient.invalidateQueries('admin-services')
-        setShowAddModal(false)
-        reset()
-      },
-      onError: () => toast.error('فشل في إضافة الخدمة')
-    }
-  )
+    onError: () => toast.error('فشل في إضافة الخدمة')
+  }
+)
+
+
 
   const updateServiceMutation = useMutation(
-    async (formData) => {
-      const csrfToken = localStorage.getItem('auth_token')
-      formData.append('role', 'admin')
-      formData.append('user_id', localStorage.getItem('user_id'))
-      formData.append('service_id', selectedService.id)
-      formData.append('csrf_token', csrfToken)
-      return await serviceService.updateService(formData)
+  async (data) => await serviceService.updateService(data),
+  {
+    onSuccess: () => {
+      toast.success('تم تعديل الخدمة بنجاح')
+      queryClient.invalidateQueries('admin-services')
+      setSelectedService(null)
     },
-    {
-      onSuccess: () => {
-        toast.success('تم تعديل الخدمة بنجاح')
-        queryClient.invalidateQueries('admin-services')
-        setSelectedService(null)
-      },
-      onError: () => toast.error('فشل في تعديل الخدمة')
-    }
-  )
+    onError: () => toast.error('فشل في تعديل الخدمة')
+  }
+)
+
 
   const toggleServiceMutation = useMutation(serviceService.toggleServiceStatus, {
     onSuccess: () => {
@@ -82,29 +72,30 @@ const AdminServices = () => {
   const services = servicesData?.data || []
 
   const handleEditClick = (service) => {
-    setSelectedService(service)
-    reset(service)
-  }
+  setSelectedService(service)
+
+  reset({
+    name: service.name || '',
+    description: service.description || '',
+    price: service.price || '',
+    duration: service.duration || ''
+  })
+}
+
 
   const onSubmitAdd = (data) => {
-    const formData = new FormData()
-    formData.append('name', data.name)
-    formData.append('description', data.description)
-    formData.append('price', data.price)
-    formData.append('duration', data.duration)
-    if (data.image?.[0]) formData.append('image', data.image[0])
-    createServiceMutation.mutate(formData)
-  }
+  createServiceMutation.mutate(data)
+}
 
-  const onSubmitEdit = (data) => {
-    const formData = new FormData()
-    formData.append('name', data.name)
-    formData.append('description', data.description)
-    formData.append('price', data.price)
-    formData.append('duration', data.duration)
-    if (data.image?.[0]) formData.append('image', data.image[0])
-    updateServiceMutation.mutate(formData)
+ const onSubmitEdit = (data) => {
+  const fullData = {
+    ...data,
+    serviceId: selectedService.id
   }
+  updateServiceMutation.mutate(fullData)
+}
+
+
 
   const handleToggleService = (id) => toggleServiceMutation.mutate(id)
   const handleDeleteService = (id) => {
@@ -143,7 +134,7 @@ const AdminServices = () => {
             >
               <div className="relative h-48 bg-gray-200">
                 {service.image_path ? (
-                  <img src={service.image_path} alt={service.name} className="w-full h-full object-cover" />
+                 <img src={`/${service.image_path}`} alt={service.name} className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
                     <span className="text-4xl">{service.name.charAt(0)}</span>

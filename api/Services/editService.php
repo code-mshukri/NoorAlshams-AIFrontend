@@ -1,9 +1,12 @@
 <?php 
 header("Content-Type: application/json");
-session_start();
+
 include(__DIR__ . '/../../includes/conf.php');
 include(__DIR__ . '/../../includes/CsrfHelper.php');
 CsrfHelper::validateToken();
+
+file_put_contents("debug.txt", print_r($_POST, true));
+
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $role = $_POST['role'] ?? $_SESSION['role'] ?? null;
@@ -31,13 +34,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $types = "";
     $values = [];
 
-    if (isset($_POST['name']) && $_POST['name'] !== "") {
+    if (isset($_POST['name'])) {
         $fields[] = "name = ?";
         $types .= "s";
         $values[] = $_POST['name'];
     }
 
-    if (isset($_POST['description']) && $_POST['description'] !== "") {
+    if (isset($_POST['description'])) {
         $fields[] = "description = ?";
         $types .= "s";
         $values[] = $_POST['description'];
@@ -87,11 +90,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $sql = "UPDATE services SET " . implode(", ", $fields) . " WHERE id = ?";
+    error_log($sql);
     $types .= "i";
     $values[] = $service_id;
 
     $stmt = $conn->prepare($sql);
     $stmt->bind_param($types, ...$values);
+
+    if ($stmt->affected_rows > 0) {
+    echo json_encode(["status" => "success", "message" => "Updated!"]);
+} else {
+    echo json_encode(["status" => "warning", "message" => "No rows affected. Data may be identical or service_id may be wrong."]);
+}
+
 
     if ($stmt->execute()) {
         echo json_encode([

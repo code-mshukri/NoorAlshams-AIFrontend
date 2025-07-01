@@ -1,7 +1,6 @@
 <?php
 header("Content-Type: application/json");
 include(__DIR__ . "/../../includes/conf.php");
-session_start();
 
 $role = $_POST['role'] ?? $_SESSION['role'] ?? null;
 $admin_id = $_POST['user_id'] ?? $_SESSION['user_id'] ?? null;

@@ -62,15 +62,10 @@ const Services = () => {
               className="card overflow-hidden group hover:scale-105 shadow-lg bg-white rounded-lg"
             >
               <div className="relative overflow-hidden">
-                {/*<img
-                  src={
-                    service.image_path
-                      ? `http://localhost/senior-nooralshams/${service.image_path}`
-                      : 'https://via.placeholder.com/400x200'
-                  }
-                  alt={service.name}
-                  className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300"
-                />*/}
+                <img
+                  src={`http://localhost/senior-nooralshams/${service.image_path}`}
+
+                />
               </div>
 
               <div className="p-6">

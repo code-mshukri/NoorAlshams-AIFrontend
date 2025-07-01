@@ -10,42 +10,41 @@ export const serviceService = {
     return await api.get(`/services/viewServices.php?id=${id}`)
   },
 
-  async createService(serviceData) {
-    const formData = new FormData()
-    formData.append('name', serviceData.name)
-    formData.append('description', serviceData.description)
-    formData.append('price', serviceData.price)
-    formData.append('duration', serviceData.duration)
-    
-    if (serviceData.image) {
-      formData.append('image', serviceData.image)
-    }
-    
-    return await api.post('/services/addService.php', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    })
-  },
+  async createService(data) {
+  const formData = new FormData()
+  formData.append('name', data.name)
+  formData.append('description', data.description)
+  formData.append('price', data.price)
+  formData.append('duration', data.duration)
+  if (data.image?.[0]) formData.append('image', data.image[0])
 
-  async updateService(serviceId, serviceData) {
-    const formData = new FormData()
-    formData.append('service_id', serviceId)
-    formData.append('name', serviceData.name)
-    formData.append('description', serviceData.description)
-    formData.append('price', serviceData.price)
-    formData.append('duration', serviceData.duration)
-    
-    if (serviceData.image) {
-      formData.append('image', serviceData.image)
-    }
-    
-    return await api.post('/services/editService.php', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    })
-  },
+  formData.append('role', 'admin')
+  formData.append('user_id', localStorage.getItem('user_id'))
+  formData.append('csrf_token', localStorage.getItem('auth_token'))
+
+  return await api.post('/services/addService.php', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  })
+},
+
+  async updateService(data) {
+  const formData = new FormData()
+  formData.append('service_id', data.serviceId)
+  formData.append('name', data.name)
+  formData.append('description', data.description)
+  formData.append('price', data.price)
+  formData.append('duration', data.duration)
+  if (data.image?.[0]) formData.append('image', data.image[0])
+
+  formData.append('role', 'admin')
+  formData.append('user_id', localStorage.getItem('user_id'))
+  formData.append('csrf_token', localStorage.getItem('auth_token'))
+
+
+  return await api.post('/services/editService.php', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  })
+},
 
   async deleteService(serviceId) {
     const formData = new FormData()
