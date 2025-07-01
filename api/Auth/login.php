@@ -4,7 +4,6 @@ include(__DIR__ . '/../../includes/conf.php');
 header("Content-Type: application/json");
 include(__DIR__ . '/../../includes/CsrfHelper.php');
 //Starts a session, which lets us store data..
-session_start();   
 
 
 $input = json_decode(file_get_contents("php://input"), true);

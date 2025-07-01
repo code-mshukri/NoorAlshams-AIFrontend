@@ -1,4 +1,3 @@
-// Full updated /admin/Services.jsx with practical edit modal
 import React, { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { motion } from 'framer-motion'
@@ -26,9 +25,28 @@ const AdminServices = () => {
 
   const { data: servicesData, isLoading } = useQuery('admin-services', serviceService.getServices)
 
+  const createServiceMutation = useMutation(
+    async (formData) => {
+      const csrfToken = localStorage.getItem('auth_token')
+      formData.append('role', 'admin')
+      formData.append('user_id', localStorage.getItem('user_id'))
+      formData.append('csrf_token', csrfToken)
+      return await serviceService.createService(formData)
+    },
+    {
+      onSuccess: () => {
+        toast.success('تم إضافة الخدمة بنجاح')
+        queryClient.invalidateQueries('admin-services')
+        setShowAddModal(false)
+        reset()
+      },
+      onError: () => toast.error('فشل في إضافة الخدمة')
+    }
+  )
+
   const updateServiceMutation = useMutation(
     async (formData) => {
-      const csrfToken = await getCsrfToken()
+      const csrfToken = localStorage.getItem('auth_token')
       formData.append('role', 'admin')
       formData.append('user_id', localStorage.getItem('user_id'))
       formData.append('service_id', selectedService.id)
@@ -68,7 +86,17 @@ const AdminServices = () => {
     reset(service)
   }
 
-  const onSubmit = (data) => {
+  const onSubmitAdd = (data) => {
+    const formData = new FormData()
+    formData.append('name', data.name)
+    formData.append('description', data.description)
+    formData.append('price', data.price)
+    formData.append('duration', data.duration)
+    if (data.image?.[0]) formData.append('image', data.image[0])
+    createServiceMutation.mutate(formData)
+  }
+
+  const onSubmitEdit = (data) => {
     const formData = new FormData()
     formData.append('name', data.name)
     formData.append('description', data.description)
@@ -81,6 +109,11 @@ const AdminServices = () => {
   const handleToggleService = (id) => toggleServiceMutation.mutate(id)
   const handleDeleteService = (id) => {
     if (window.confirm('هل أنت متأكد من حذف هذه الخدمة؟')) deleteServiceMutation.mutate(id)
+  }
+
+  const handleAddModalClose = () => {
+    setShowAddModal(false)
+    reset()
   }
 
   if (isLoading) return <LoadingSpinner />
@@ -109,8 +142,8 @@ const AdminServices = () => {
               className="card overflow-hidden"
             >
               <div className="relative h-48 bg-gray-200">
-                {service.image ? (
-                  <img src={`/uploads/${service.image}`} alt={service.name} className="w-full h-full object-cover" />
+                {service.image_path ? (
+                  <img src={service.image_path} alt={service.name} className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
                     <span className="text-4xl">{service.name.charAt(0)}</span>
@@ -151,6 +184,96 @@ const AdminServices = () => {
         </div>
       </div>
 
+      {/* Add Service Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-xl relative">
+            <button onClick={handleAddModalClose} className="absolute top-2 left-2">
+              <X className="w-5 h-5" />
+            </button>
+            <h2 className="text-xl font-bold mb-4">إضافة خدمة جديدة</h2>
+            <form onSubmit={handleSubmit(onSubmitAdd)} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">اسم الخدمة</label>
+                <input 
+                  {...register('name', { required: 'اسم الخدمة مطلوب' })} 
+                  className="input-field w-full" 
+                  placeholder="اسم الخدمة" 
+                />
+                {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>}
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">الوصف</label>
+                <textarea 
+                  {...register('description', { required: 'وصف الخدمة مطلوب' })} 
+                  className="input-field w-full" 
+                  placeholder="وصف الخدمة"
+                  rows={3}
+                />
+                {errors.description && <p className="text-red-500 text-xs mt-1">{errors.description.message}</p>}
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">السعر</label>
+                  <input 
+                    type="number" 
+                    step="0.01" 
+                    {...register('price', { 
+                      required: 'السعر مطلوب', 
+                      min: { value: 0, message: 'يجب أن يكون السعر أكبر من 0' } 
+                    })} 
+                    className="input-field w-full" 
+                    placeholder="السعر" 
+                  />
+                  {errors.price && <p className="text-red-500 text-xs mt-1">{errors.price.message}</p>}
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">المدة (بالدقائق)</label>
+                  <input 
+                    type="number" 
+                    {...register('duration', { 
+                      required: 'المدة مطلوبة', 
+                      min: { value: 1, message: 'يجب أن تكون المدة أكبر من 0' } 
+                    })} 
+                    className="input-field w-full" 
+                    placeholder="المدة بالدقائق" 
+                  />
+                  {errors.duration && <p className="text-red-500 text-xs mt-1">{errors.duration.message}</p>}
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">الصورة</label>
+                <input 
+                  type="file" 
+                  {...register('image')} 
+                  className="input-field w-full" 
+                  accept="image/*"
+                />
+                <p className="text-xs text-gray-500 mt-1">اختيارية: يمكنك إضافة صورة للخدمة</p>
+              </div>
+              
+              <button 
+                type="submit" 
+                className="btn-primary w-full py-2"
+                disabled={createServiceMutation.isLoading}
+              >
+                {createServiceMutation.isLoading ? (
+                  <span className="flex items-center justify-center">
+                    <LoadingSpinner size="sm" text="" />
+                    <span className="mr-2">جاري الإضافة...</span>
+                  </span>
+                ) : 'إضافة الخدمة'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Service Modal */}
       {selectedService && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-xl relative">
@@ -158,13 +281,76 @@ const AdminServices = () => {
               <X className="w-5 h-5" />
             </button>
             <h2 className="text-xl font-bold mb-4">تعديل الخدمة</h2>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-              <input {...register('name', { required: true })} className="input w-full" placeholder="اسم الخدمة" />
-              <textarea {...register('description', { required: true })} className="input w-full" placeholder="الوصف" />
-              <input type="number" step="0.01" {...register('price', { required: true })} className="input w-full" placeholder="السعر" />
-              <input type="number" {...register('duration', { required: true })} className="input w-full" placeholder="المدة بالدقائق" />
-              <input type="file" {...register('image')} className="input w-full" />
-              <button type="submit" className="btn-primary w-full">حفظ التعديلات</button>
+            <form onSubmit={handleSubmit(onSubmitEdit)} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">اسم الخدمة</label>
+                <input 
+                  {...register('name', { required: true })} 
+                  className="input-field w-full" 
+                  placeholder="اسم الخدمة" 
+                />
+                {errors.name && <p className="text-red-500 text-xs mt-1">هذا الحقل مطلوب</p>}
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">الوصف</label>
+                <textarea 
+                  {...register('description', { required: true })} 
+                  className="input-field w-full" 
+                  placeholder="وصف الخدمة"
+                  rows={3}
+                />
+                {errors.description && <p className="text-red-500 text-xs mt-1">هذا الحقل مطلوب</p>}
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">السعر</label>
+                  <input 
+                    type="number" 
+                    step="0.01" 
+                    {...register('price', { required: true, min: 0 })} 
+                    className="input-field w-full" 
+                    placeholder="السعر" 
+                  />
+                  {errors.price && <p className="text-red-500 text-xs mt-1">أدخل سعراً صحيحاً</p>}
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">المدة (بالدقائق)</label>
+                  <input 
+                    type="number" 
+                    {...register('duration', { required: true, min: 1 })} 
+                    className="input-field w-full" 
+                    placeholder="المدة بالدقائق" 
+                  />
+                  {errors.duration && <p className="text-red-500 text-xs mt-1">أدخل مدة صحيحة</p>}
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">الصورة</label>
+                <input 
+                  type="file" 
+                  {...register('image')} 
+                  className="input-field w-full" 
+                  accept="image/*"
+                />
+                <p className="text-xs text-gray-500 mt-1">اترك هذا الحقل فارغاً للاحتفاظ بالصورة الحالية</p>
+              </div>
+              
+              <button 
+                type="submit" 
+                className="btn-primary w-full py-2"
+                disabled={updateServiceMutation.isLoading}
+              >
+                {updateServiceMutation.isLoading ? (
+                  <span className="flex items-center justify-center">
+                    <LoadingSpinner size="sm" text="" />
+                    <span className="mr-2">جاري الحفظ...</span>
+                  </span>
+                ) : 'حفظ التعديلات'}
+              </button>
             </form>
           </div>
         </div>

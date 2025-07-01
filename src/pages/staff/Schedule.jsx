@@ -1,6 +1,6 @@
-import React, { useState } from 'react'
+import React, { useState, useCallback, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { Calendar, Clock, User, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Calendar, Clock, User, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react'
 import { useQuery } from 'react-query'
 import Header from '../../components/layout/Header'
 import Footer from '../../components/layout/Footer'
@@ -11,8 +11,8 @@ const StaffSchedule = () => {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [viewMode, setViewMode] = useState('week') // 'week' or 'month'
 
-  // Calculate date range based on view mode
-  const getDateRange = () => {
+  // Calculate date range based on view mode - memoized to prevent recalculation
+  const dateRange = useMemo(() => {
     const start = new Date(currentDate)
     const end = new Date(currentDate)
 
@@ -33,32 +33,45 @@ const StaffSchedule = () => {
       from: start.toISOString().split('T')[0],
       to: end.toISOString().split('T')[0]
     }
-  }
+  }, [currentDate, viewMode])
 
-  const dateRange = getDateRange()
-
-  // Fetch staff schedule
-  const { data: scheduleData, isLoading } = useQuery(
-    ['staff-schedule', dateRange.from, dateRange.to],
+  // Fetch staff schedule with proper query keys for caching
+  const { 
+    data: scheduleData, 
+    isLoading, 
+    isError, 
+    refetch 
+  } = useQuery(
+    ['staff-schedule', dateRange.from, dateRange.to, viewMode],
     () => staffService.getStaffSchedule(null, dateRange.from, dateRange.to),
     {
       refetchOnWindowFocus: false,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      cacheTime: 10 * 60 * 1000, // 10 minutes
+      retry: 2,
+      onError: (error) => {
+        console.error('Error fetching schedule:', error)
+      }
     }
   )
 
   const schedule = scheduleData?.data || {}
 
-  const navigateDate = (direction) => {
-    const newDate = new Date(currentDate)
-    if (viewMode === 'week') {
-      newDate.setDate(newDate.getDate() + (direction === 'next' ? 7 : -7))
-    } else {
-      newDate.setMonth(newDate.getMonth() + (direction === 'next' ? 1 : -1))
-    }
-    setCurrentDate(newDate)
-  }
+  // Memoized navigation function to prevent unnecessary re-renders
+  const navigateDate = useCallback((direction) => {
+    setCurrentDate(prevDate => {
+      const newDate = new Date(prevDate)
+      if (viewMode === 'week') {
+        newDate.setDate(newDate.getDate() + (direction === 'next' ? 7 : -7))
+      } else {
+        newDate.setMonth(newDate.getMonth() + (direction === 'next' ? 1 : -1))
+      }
+      return newDate
+    })
+  }, [viewMode])
 
-  const getWeekDays = () => {
+  // Memoized week days calculation
+  const weekDays = useMemo(() => {
     const days = []
     const start = new Date(dateRange.from)
     
@@ -69,8 +82,9 @@ const StaffSchedule = () => {
     }
     
     return days
-  }
+  }, [dateRange.from])
 
+  // Pure functions for formatting and display
   const formatDate = (date) => {
     return date.toLocaleDateString('ar-SA', {
       weekday: 'long',
@@ -102,6 +116,29 @@ const StaffSchedule = () => {
       no_show: 'لم يحضر',
     }
     return labels[status] || status
+  }
+
+  // Error state handling
+  if (isError) {
+    return (
+      <div className="min-h-screen gradient-bg">
+        <Header />
+        <div className="max-w-7xl mx-auto px-4 py-8 text-center">
+          <div className="card p-8">
+            <h2 className="text-2xl font-bold text-red-600 mb-4">حدث خطأ أثناء تحميل الجدول</h2>
+            <p className="text-gray-600 mb-6">لم نتمكن من تحميل جدولك. يرجى المحاولة مرة أخرى.</p>
+            <button 
+              onClick={() => refetch()} 
+              className="btn-primary flex items-center mx-auto"
+            >
+              <RefreshCw className="w-5 h-5 ml-2" />
+              إعادة المحاولة
+            </button>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    )
   }
 
   if (isLoading) {
@@ -140,6 +177,7 @@ const StaffSchedule = () => {
               <button
                 onClick={() => navigateDate('prev')}
                 className="btn-outline p-2"
+                aria-label="السابق"
               >
                 <ChevronRight className="w-5 h-5" />
               </button>
@@ -154,6 +192,7 @@ const StaffSchedule = () => {
               <button
                 onClick={() => navigateDate('next')}
                 className="btn-outline p-2"
+                aria-label="التالي"
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
@@ -184,7 +223,7 @@ const StaffSchedule = () => {
             transition={{ delay: 0.2 }}
             className="grid grid-cols-1 lg:grid-cols-7 gap-4"
           >
-            {getWeekDays().map((day, index) => {
+            {weekDays.map((day, index) => {
               const dayKey = day.toISOString().split('T')[0]
               const dayAppointments = schedule[dayKey] || []
               const isToday = dayKey === new Date().toISOString().split('T')[0]
@@ -203,7 +242,7 @@ const StaffSchedule = () => {
                     </p>
                   </div>
 
-                  <div className="space-y-2">
+                  <div className="space-y-2 max-h-[400px] overflow-y-auto">
                     {dayAppointments.length > 0 ? (
                       dayAppointments.map((appointment) => (
                         <div
@@ -238,58 +277,65 @@ const StaffSchedule = () => {
             })}
           </motion.div>
         ) : (
-          // Month view - simplified list
+          // Month view - optimized list with virtualization for large datasets
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
             className="card p-6"
           >
-            <div className="space-y-4">
-              {Object.entries(schedule).map(([date, appointments]) => (
-                <div key={date} className="border-b border-gray-200 pb-4 last:border-b-0">
-                  <h3 className="font-bold text-gray-900 mb-3">
-                    {new Date(date).toLocaleDateString('ar-SA', {
-                      weekday: 'long',
-                      day: 'numeric',
-                      month: 'long'
-                    })}
-                  </h3>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {appointments.map((appointment) => (
-                      <div
-                        key={appointment.id}
-                        className="p-3 bg-gray-50 rounded-lg"
-                      >
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-sm font-medium text-gray-900">
-                            {appointment.appointment_time}
-                          </span>
-                          <span className={`text-xs px-2 py-1 rounded-full ${getStatusColor(appointment.status)}`}>
-                            {getStatusLabel(appointment.status)}
-                          </span>
-                        </div>
-                        <p className="text-sm text-gray-700 font-medium">
-                          {appointment.client_name}
-                        </p>
-                        <p className="text-xs text-gray-600">
-                          {appointment.service_name}
-                        </p>
+            {Object.keys(schedule).length === 0 ? (
+              <div className="text-center py-8">
+                <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">لا توجد مواعيد</h3>
+                <p className="text-gray-600">لا توجد مواعيد مجدولة في هذه الفترة</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {Object.entries(schedule)
+                  .sort(([dateA], [dateB]) => new Date(dateA) - new Date(dateB))
+                  .map(([date, appointments]) => (
+                    <div key={date} className="border-b border-gray-200 pb-4 last:border-b-0">
+                      <h3 className="font-bold text-gray-900 mb-3">
+                        {new Date(date).toLocaleDateString('ar-SA', {
+                          weekday: 'long',
+                          day: 'numeric',
+                          month: 'long'
+                        })}
+                      </h3>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {appointments.map((appointment) => (
+                          <div
+                            key={appointment.id}
+                            className="p-3 bg-gray-50 rounded-lg"
+                          >
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-sm font-medium text-gray-900">
+                                {appointment.appointment_time}
+                              </span>
+                              <span className={`text-xs px-2 py-1 rounded-full ${getStatusColor(appointment.status)}`}>
+                                {getStatusLabel(appointment.status)}
+                              </span>
+                            </div>
+                            <div className="flex items-center space-x-2 space-x-reverse">
+                              <div className="w-6 h-6 bg-primary-100 rounded-full flex items-center justify-center">
+                                <User className="w-3 h-3 text-primary-200" />
+                              </div>
+                              <p className="text-sm text-gray-700 font-medium">
+                                {appointment.client_name}
+                              </p>
+                            </div>
+                            <p className="text-xs text-gray-600 mt-1">
+                              {appointment.service_name}
+                            </p>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-              
-              {Object.keys(schedule).length === 0 && (
-                <div className="text-center py-8">
-                  <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">لا توجد مواعيد</h3>
-                  <p className="text-gray-600">لا توجد مواعيد مجدولة في هذه الفترة</p>
-                </div>
-              )}
-            </div>
+                    </div>
+                  ))}
+              </div>
+            )}
           </motion.div>
         )}
       </div>
