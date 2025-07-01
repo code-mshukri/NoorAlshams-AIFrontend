@@ -11,7 +11,7 @@ import Footer from '../../components/layout/Footer'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import { announcementService } from '../../services/announcementService'
 
-const Announcements = () => {
+const AdminAnnouncements = () => {
   const [message, setMessage] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const queryClient = useQueryClient()
@@ -270,4 +270,4 @@ const Announcements = () => {
   )
 }
 
-export default Announcements
+export default AdminAnnouncements

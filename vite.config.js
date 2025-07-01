@@ -12,10 +12,10 @@ export default defineConfig({
   server: {
     port: 3000,
     proxy: {
-      '/api': {
+      '^/(UserManagement|services|Profile|Feedback|Auth|Staff|AdminDashboard|Announcements|Booking|Notifications|Messaging)': {
         target: 'http://localhost/senior-nooralshams/api',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, '/api')
+        rewrite: (path) => path.replace(/^\/(UserManagement|services|Profile|Feedback|Auth|Staff|AdminDashboard|Announcements|Booking|Notifications|Messaging)/, '/$1'),
       }
     }
   },
@@ -24,4 +24,3 @@ export default defineConfig({
     sourcemap: true
   }
 })
-

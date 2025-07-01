@@ -1,12 +1,14 @@
 <?php
 header("Content-Type: application/json");
 include(__DIR__ . "/../../includes/conf.php");
+include(__DIR__."/../../includes/CsrfHelper.php");
+// CsrfHelper::validateToken(); //Validates the CSRF token to prevent CSRF attacks. (Cross-Site Request Forgery)
 
 $role = $_POST['role'] ?? $_SESSION['role'] ?? null;
 $admin_id = $_POST['user_id'] ?? $_SESSION['user_id'] ?? null;
 
 $page_num = isset($_GET['page']) && is_numeric($_GET['page']) ? intval($_GET['page']) : 1;
-$limit = 15;
+$limit = 10;
 $offset = ($page_num - 1) * $limit;
 
 if ($role === 'admin' && $admin_id) {
@@ -27,6 +29,15 @@ if ($role === 'admin' && $admin_id) {
         $params[] = $_POST['user_role'];
         $types .= 's';
     }
+
+    if (isset($_POST['status']) && $_POST['status'] !== '') {
+    if ($_POST['status'] === 'active') {
+        $filter_sql .= " AND u.is_active = 1 ";
+    } elseif ($_POST['status'] === 'inactive') {
+        $filter_sql .= " AND u.is_active = 0 ";
+    }
+}
+
 
     // First, run COUNT query to get total_results
     $count_sql = "SELECT COUNT(*) FROM users u WHERE is_verified = 1 " . $filter_sql;
@@ -49,9 +60,11 @@ if ($role === 'admin' && $admin_id) {
                u.full_name,
                u.phone,
                u.email,
-               u.dob AS date_of_birth,
+               u.dob,
                u.role,
-               u.created_at AS Registry_date
+               u.is_active,
+               u.is_verified,
+               u.created_at
         FROM users u
         WHERE is_verified = 1 " . $filter_sql . "
         ORDER BY u.created_at DESC
@@ -80,6 +93,7 @@ if ($role === 'admin' && $admin_id) {
 
     $users_data = [];
     while ($row = $result->fetch_assoc()) {
+        $row['is_active'] = $row['is_active'] == 1 ? true : false;
         $users_data[] = $row;
     }
 

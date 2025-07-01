@@ -11,6 +11,7 @@ import Header from '../../components/layout/Header'
 import Footer from '../../components/layout/Footer'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import { useAuth } from '../../contexts/AuthContext'
+import { userServices } from '../../services/userService'
 
 const UserManagement = () => {
   const { user } = useAuth()
@@ -46,33 +47,15 @@ const UserManagement = () => {
     refetch 
   } = useQuery(
     ['admin-users', currentPage, debouncedSearchTerm, statusFilter, roleFilter, dateFilter],
-    async () => {
-      try {
-        const formData = new FormData()
-        formData.append('user_id', user?.id)
-        formData.append('role', user?.role)
-        
-        if (debouncedSearchTerm) formData.append('user_name', debouncedSearchTerm)
-        if (statusFilter) formData.append('status', statusFilter)
-        if (roleFilter) formData.append('user_role', roleFilter)
-        if (dateFilter) formData.append('date', dateFilter)
-        formData.append('page', currentPage)
-        
-        const response = await fetch('http://localhost/senior-nooralshams/api/UserManagement/searchUsers.php', {
-          method: 'POST',
-          body: formData,
-          credentials: 'include'
-        })
-        
-        if (!response.ok) {
-          throw new Error('Network response was not ok')
-        }
-        
-        return await response.json()
-      } catch (error) {
-        throw new Error(error.message || 'Error fetching users')
-      }
-    },
+    () => userServices.searchUsers({
+      userId: user?.id,
+      role: user?.role,
+      page: currentPage,
+      searchTerm: debouncedSearchTerm,
+      statusFilter,
+      roleFilter,
+      dateFilter
+    }),
     {
       keepPreviousData: true,
       refetchOnWindowFocus: false,
@@ -86,30 +69,13 @@ const UserManagement = () => {
 
   // Toggle user status mutation
   const toggleUserStatusMutation = useMutation(
-    async ({ userId, newStatus }) => {
-      try {
-        const formData = new FormData()
-        formData.append('user_id', user?.id)
-        formData.append('role', user?.role)
-        formData.append('target_user_id', userId)
-        formData.append('new_status', newStatus ? 1 : 0)
-        formData.append('csrf_token', user?.csrf_token)
-        
-        const response = await fetch('/api/UserManagement/deactivateUser.php', {
-          method: 'POST',
-          body: formData,
-          credentials: 'include'
-        })
-        
-        if (!response.ok) {
-          throw new Error('Network response was not ok')
-        }
-        
-        return await response.json()
-      } catch (error) {
-        throw new Error(error.message || 'Error toggling user status')
-      }
-    },
+    (params) => userServices.toggleUserStatus({
+      adminId: user?.id,
+      adminRole: user?.role,
+      userId: params.userId,
+      newStatus: params.newStatus,
+      csrfToken: user?.csrf_token
+    }),
     {
       onSuccess: () => {
         toast.success('تم تحديث حالة المستخدم بنجاح')
@@ -128,28 +94,11 @@ const UserManagement = () => {
     refetch: refetchActivity
   } = useQuery(
     ['user-activity', selectedUser?.user_id],
-    async () => {
-      try {
-        const formData = new FormData()
-        formData.append('user_id', user?.id)
-        formData.append('role', user?.role)
-        formData.append('target_user_id', selectedUser?.user_id)
-        
-        const response = await fetch('/api/UserManagement/getUserActivity.php', {
-          method: 'POST',
-          body: formData,
-          credentials: 'include'
-        })
-        
-        if (!response.ok) {
-          throw new Error('Network response was not ok')
-        }
-        
-        return await response.json()
-      } catch (error) {
-        throw new Error(error.message || 'Error fetching user activity')
-      }
-    },
+    () => userServices.getUserActivity({
+      adminId: user?.id,
+      adminRole: user?.role,
+      targetUserId: selectedUser?.user_id
+    }),
     {
       enabled: !!selectedUser?.user_id,
       refetchOnWindowFocus: false,
@@ -231,48 +180,22 @@ const UserManagement = () => {
     }
   }
 
-  // Format date
-  const formatDate = (dateString) => {
-    if (!dateString) return ''
-    const options = { year: 'numeric', month: 'long', day: 'numeric' }
-    return new Date(dateString).toLocaleDateString('ar-SA', options)
-  }
-
-  // Format time
-  const formatTime = (dateString) => {
-    if (!dateString) return ''
-    const options = { hour: '2-digit', minute: '2-digit' }
-    return new Date(dateString).toLocaleTimeString('ar-SA', options)
-  }
-
   // Get role badge
   const getRoleBadge = (role) => {
-    const badges = {
-      admin: 'bg-red-100 text-red-800',
-      staff: 'bg-blue-100 text-blue-800',
-      client: 'bg-green-100 text-green-800',
-    }
-    
-    const labels = {
-      admin: 'مدير',
-      staff: 'موظف',
-      client: 'عميل',
-    }
-
+    const badgeData = userServices.getRoleBadgeData(role)
     return (
-      <span className={`inline-block px-2 py-1 text-xs rounded-full font-medium ${badges[role] || 'bg-gray-100 text-gray-800'}`}>
-        {labels[role] || role}
+      <span className={`inline-block px-2 py-1 text-xs rounded-full font-medium ${badgeData.className}`}>
+        {badgeData.label}
       </span>
     )
   }
 
   // Get status badge
   const getStatusBadge = (isActive) => {
+    const badgeData = userServices.getStatusBadgeData(isActive)
     return (
-      <span className={`inline-block px-2 py-1 text-xs rounded-full font-medium ${
-        isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-      }`}>
-        {isActive ? 'نشط' : 'معطل'}
+      <span className={`inline-block px-2 py-1 text-xs rounded-full font-medium ${badgeData.className}`}>
+        {badgeData.label}
       </span>
     )
   }
@@ -339,16 +262,6 @@ const UserManagement = () => {
               </select>
             </div>
 
-            {/* Date Filter */}
-            <div>
-              <input
-                type="date"
-                value={dateFilter}
-                onChange={(e) => setDateFilter(e.target.value)}
-                className="input-field"
-                placeholder="تاريخ التسجيل"
-              />
-            </div>
           </div>
 
           <div className="flex justify-end mt-4 space-x-2 space-x-reverse">
@@ -483,7 +396,7 @@ const UserManagement = () => {
                         {getStatusBadge(user.is_active)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {formatDate(user.created_at)}
+                        {userServices.formatDate(user.created_at)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex space-x-2 space-x-reverse">
@@ -655,14 +568,14 @@ const UserManagement = () => {
                       <Calendar className="w-5 h-5 text-gray-400" />
                       <div>
                         <p className="text-sm text-gray-500">تاريخ الميلاد</p>
-                        <p className="font-medium">{selectedUser.dob ? formatDate(selectedUser.dob) : 'غير متوفر'}</p>
+                        <p className="font-medium">{selectedUser.dob ? userServices.formatDate(selectedUser.dob) : 'غير متوفر'}</p>
                       </div>
                     </div>
                     <div className="flex items-center space-x-2 space-x-reverse">
                       <Calendar className="w-5 h-5 text-gray-400" />
                       <div>
                         <p className="text-sm text-gray-500">تاريخ التسجيل</p>
-                        <p className="font-medium">{formatDate(selectedUser.created_at)}</p>
+                        <p className="font-medium">{userServices.formatDate(selectedUser.created_at)}</p>
                       </div>
                     </div>
                     <div className="flex items-center space-x-2 space-x-reverse">
@@ -675,37 +588,7 @@ const UserManagement = () => {
                   </div>
                 </div>
 
-                {/* User Activity */}
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h3 className="text-lg font-bold text-gray-900 mb-4">سجل النشاط</h3>
-                  
-                  {isLoadingActivity ? (
-                    <div className="flex justify-center items-center h-40">
-                      <LoadingSpinner size="sm" />
-                    </div>
-                  ) : userActivity.length > 0 ? (
-                    <div className="space-y-3 max-h-60 overflow-y-auto">
-                      {userActivity.map((activity, index) => (
-                        <div key={index} className="flex items-start space-x-3 space-x-reverse p-2 bg-white rounded-md">
-                          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                            <Calendar className="w-4 h-4 text-blue-600" />
-                          </div>
-                          <div className="flex-1">
-                            <p className="text-sm font-medium">{activity.action}</p>
-                            <p className="text-xs text-gray-500">
-                              {formatDate(activity.timestamp)} - {formatTime(activity.timestamp)}
-                            </p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-6">
-                      <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-2" />
-                      <p className="text-gray-500">لا يوجد نشاط مسجل لهذا المستخدم</p>
-                    </div>
-                  )}
-                </div>
+               
               </div>
             </div>
           </motion.div>
