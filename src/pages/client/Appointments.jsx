@@ -13,6 +13,29 @@ const ClientAppointments = () => {
   const { user } = useAuth()
   const { t } = useLanguage()
   const queryClient = useQueryClient()
+  useEffect(() => {
+  const fetchServices = async () => {
+    try {
+      const response = await fetch('http://localhost/senior-nooralshams/api/services/viewServices.php', {
+        method: 'POST',
+        credentials: 'include',
+      })
+      const data = await response.json()
+      if (data.status === 'success') {
+        setAvailableServices(data.data)
+      } else {
+        toast.error('فشل في تحميل الخدمات')
+      }
+    } catch (error) {
+      console.error('Error fetching services:', error)
+      toast.error('حدث خطأ أثناء تحميل الخدمات')
+    }
+  }
+
+  fetchServices()
+}, [])
+
+const [currentPage, setCurrentPage] = useState(1)
   const [currentMonth, setCurrentMonth] = useState(new Date())
   const [statusFilter, setStatusFilter] = useState('')
   const [dateRange, setDateRange] = useState({ from: '', to: '' })
@@ -25,169 +48,117 @@ const ClientAppointments = () => {
     date: '',
     time: ''
   })
+const [availableServices, setAvailableServices] = useState([])
 
-  // Fetch appointments
-  const { data: appointmentsData, isLoading, isError, refetch } = useQuery(
-    ['client-appointments', statusFilter, dateRange, sortOrder],
-    async () => {
-      try {
-        // In a real implementation, this would be an API call with proper params
-        const response = await fetch('/api/Booking/viewClientAppointments.php', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            user_id: user?.id,
-            role: user?.role,
-            status: statusFilter,
-            date_from: dateRange.from,
-            date_to: dateRange.to,
-            sort: sortOrder
-          }),
-          credentials: 'include'
-        })
-        
-        if (!response.ok) {
-          throw new Error('Network response was not ok')
-        }
-        
-        return await response.json()
-      } catch (error) {
-        console.error('Error fetching appointments:', error)
-        throw new Error('Failed to load appointments')
-      }
-    },
-    {
-      refetchOnWindowFocus: false,
-      enabled: !!user,
-      onError: (error) => {
-        toast.error(error.message || 'Failed to load appointments')
-      }
+ const { data: appointmentsData, isLoading, isError, refetch } = useQuery(
+  ['client-appointments', currentPage],
+  async () => {
+    const formData = new FormData()
+    formData.append('user_id', user?.id)
+    formData.append('role', user?.role)
+    formData.append('status', statusFilter)
+    formData.append('date_from', dateRange.from)
+    formData.append('date_to', dateRange.to)
+    formData.append('sort', sortOrder)
+    formData.append('page', currentPage)
+
+    const response = await fetch('http://localhost/senior-nooralshams/api/booking/viewClientAppointments.php', {
+      method: 'POST',
+      body: formData,
+      credentials: 'include'
+    })
+
+    if (!response.ok) {
+      throw new Error('Network response was not ok')
     }
-  )
+
+    return await response.json()
+  },
+  {
+    refetchOnWindowFocus: false,
+    enabled: !!user,
+    onError: (error) => {
+      toast.error(error.message || 'Failed to load appointments')
+    }
+  }
+)
+
+
+
+  const appointments = appointmentsData?.data?.appointments || []
+
 
   // Cancel appointment mutation
   const cancelAppointmentMutation = useMutation(
-    async (appointmentId) => {
-      try {
-        const response = await fetch('/api/Booking/cancelBooking.php', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            user_id: user?.id,
-            role: user?.role,
-            appointment_id: appointmentId,
-            csrf_token: user?.csrf_token
-          }),
-          credentials: 'include'
-        })
-        
-        if (!response.ok) {
-          throw new Error('Network response was not ok')
-        }
-        
-        return await response.json()
-      } catch (error) {
-        console.error('Error cancelling appointment:', error)
-        throw new Error('Failed to cancel appointment')
-      }
-    },
-    {
-      onSuccess: () => {
-        toast.success('تم إلغاء الموعد بنجاح')
-        queryClient.invalidateQueries(['client-appointments'])
-      },
-      onError: (error) => {
-        toast.error(error.message || 'Failed to cancel appointment')
-      }
+  async (appointmentId) => {
+    const formData = new FormData()
+    formData.append('user_id', user?.id)
+    formData.append('role', user?.role)
+    formData.append('appointment_id', appointmentId)
+    formData.append('csrf_token', user?.csrf_token)
+
+    const response = await fetch('/api/Booking/cancelBooking.php', {
+      method: 'POST',
+      body: formData,
+      credentials: 'include'
+    })
+
+    if (!response.ok) {
+      throw new Error('Network response was not ok')
     }
-  )
+
+    return await response.json()
+  },
+  {
+    onSuccess: () => {
+      toast.success('تم إلغاء الموعد بنجاح')
+      queryClient.invalidateQueries(['client-appointments'])
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to cancel appointment')
+    }
+  }
+)
+
 
   // Edit appointment mutation
   const editAppointmentMutation = useMutation(
-    async (data) => {
-      try {
-        const response = await fetch('/api/Booking/editBooking.php', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            user_id: user?.id,
-            role: user?.role,
-            appointment_id: selectedAppointment.id,
-            service_id: data.service_id,
-            date: data.date,
-            time: data.time,
-            csrf_token: user?.csrf_token
-          }),
-          credentials: 'include'
-        })
-        
-        if (!response.ok) {
-          throw new Error('Network response was not ok')
-        }
-        
-        return await response.json()
-      } catch (error) {
-        console.error('Error editing appointment:', error)
-        throw new Error('Failed to update appointment')
-      }
-    },
-    {
-      onSuccess: () => {
-        toast.success('تم تعديل الموعد بنجاح')
-        setShowEditModal(false)
-        queryClient.invalidateQueries(['client-appointments'])
-      },
-      onError: (error) => {
-        toast.error(error.message || 'Failed to update appointment')
-      }
-    }
-  )
+  async (data) => {
+    const formData = new FormData()
+    formData.append('user_id', user?.id)
+    formData.append('role', user?.role)
+    formData.append('appointment_id', selectedAppointment.id)
+    formData.append('service_id', data.service_id)
+    formData.append('date', data.date)
+    formData.append('time', data.time)
+    formData.append('csrf_token', user?.csrf_token)
 
-  // Mock data for appointments (replace with actual data from API)
-  const appointments = appointmentsData?.data?.appointments || [
-    {
-      id: 1,
-      service_name: 'Laser Hair Removal',
-      staff_name: 'Lana Khalil',
-      date: '2025-07-15',
-      time: '10:00:00',
-      status: 'pending',
-      price: 230
-    },
-    {
-      id: 2,
-      service_name: 'Facial Treatment',
-      staff_name: 'Maya Odeh',
-      date: '2025-07-16',
-      time: '14:30:00',
-      status: 'confirmed',
-      price: 120
-    },
-    {
-      id: 3,
-      service_name: 'Henna Design',
-      staff_name: 'Noura Hasan',
-      date: '2025-07-20',
-      time: '11:15:00',
-      status: 'completed',
-      price: 70
-    }
-  ]
+    const response = await fetch('/api/Booking/editBooking.php', {
+      method: 'POST',
+      body: formData,
+      credentials: 'include'
+    })
 
-  // Mock data for services (replace with actual data from API)
-  const services = [
-    { id: 1, name: 'Laser Hair Removal', price: 230 },
-    { id: 3, name: 'Facial Treatment', price: 120 },
-    { id: 4, name: 'Henna Design', price: 70 },
-    { id: 5, name: 'Pedicare', price: 80 },
-    { id: 8, name: 'Nails Polishing', price: 130 }
-  ]
+    if (!response.ok) {
+      throw new Error('Network response was not ok')
+    }
+
+    return await response.json()
+  },
+  {
+    onSuccess: () => {
+      toast.success('تم تعديل الموعد بنجاح')
+      setShowEditModal(false)
+      queryClient.invalidateQueries(['client-appointments'])
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to update appointment')
+    }
+  }
+)
+
+
+  
 
   // Generate calendar days for the current month
   const getDaysInMonth = (year, month) => {
@@ -476,7 +447,7 @@ const ClientAppointments = () => {
               
               return (
                 <div
-                  key={index}
+                   key={day.date.toISOString()}
                   className={`min-h-24 border rounded-lg p-2 ${
                     day.isCurrentMonth
                       ? isToday
@@ -723,8 +694,9 @@ const ClientAppointments = () => {
                   required
                 >
                   <option value="">اختر الخدمة</option>
-                  {services.map((service) => (
-                    <option key={service.id} value={service.id}>
+                 {availableServices.map((service) => (
+                <option key={service.id} value={service.id}>
+
                       {service.name} - {service.price} ₪
                     </option>
                   ))}

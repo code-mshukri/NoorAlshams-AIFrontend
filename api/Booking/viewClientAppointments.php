@@ -3,9 +3,19 @@ header("Content-Type: application/json");
 include(__DIR__ . '/../../includes/conf.php');  //Connects with the database.
 
 
-$client_id = $_SESSION['user_id'] ?? null;
-$role = $_SESSION['role'] ?? null;
+$client_id = $_SESSION['user_id'] ?? $_POST['user_id'] ?? null;
+$role = $_SESSION['role'] ?? $_POST['role'] ??null;
 
+
+
+
+if (!$client_id || $role !== 'client') {
+    echo json_encode([
+        "status" => "error",
+        "message" => "User not found or not a client"
+    ]);
+    exit;
+}
 
 
 $sql = "SELECT id FROM users WHERE id = ? AND role = 'client' AND is_active = 1";
@@ -37,7 +47,7 @@ if(!$result || !$id || $role !== 'client')
 }
 
 
-     $page_num = isset($_GET['page']) && is_numeric($_GET['page']) ? intval($_GET['page']) : 1;  //This is ternary operator, it's syntax is: condition ? value_if_true : value_if_false
+     $page_num = isset($_POST['page']) && is_numeric($_POST['page']) ? intval($_POST['page']) : 1;
     $limit = 10;
     $offset = ($page_num - 1) * $limit;
 

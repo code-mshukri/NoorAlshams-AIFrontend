@@ -6,8 +6,8 @@ include(__DIR__ . '/../../includes/CsrfHelper.php'); //Including CSRF helper to 
 
 CsrfHelper::validateToken(); //Validates the CSRF token to prevent CSRF attacks. (Cross-Site Request Forgery)
 
-$client_id = $_POST['user_id'] ?? $_SESSION['user_id'] ?? null;
-$role = $_POST['role'] ?? $_SESSION['role'] ?? null;
+$client_id = $_SESSION['user_id'] ?? $_POST['user_id'] ??  null;
+$role = $_SESSION['role'] ?? $_POST['role'] ?? null;
 if(!$client_id || $role !== 'client')
 {
     echo json_encode
