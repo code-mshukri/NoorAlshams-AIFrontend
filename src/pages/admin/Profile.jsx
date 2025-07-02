@@ -26,8 +26,10 @@ const AdminProfile = () => {
     const fetchProfile = async () => {
       try {
         const formData = new FormData()
+
         formData.append('user_id', user?.id)
         formData.append('role', user?.role)
+        formData.append('csrf_token', localStorage.getItem('auth_token'))
 
         const response = await fetch('http://localhost/senior-nooralshams/api/profile/viewAdminProfile.php', {
           method: 'POST',
@@ -61,6 +63,8 @@ const AdminProfile = () => {
       const formData = new FormData()
       formData.append('user_id', user?.id)
       formData.append('role', user?.role)
+        formData.append('csrf_token', localStorage.getItem('auth_token'))
+
       Object.entries(profileData).forEach(([key, value]) => {
         formData.append(key, value)
       })

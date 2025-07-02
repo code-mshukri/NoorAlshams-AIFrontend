@@ -2,7 +2,7 @@
 header("Content-Type: application/json");
 include (__DIR__."/../../includes/conf.php");
 include(__DIR__ . "/../../includes/CsrfHelper.php"); // CSRF protection
-session_start();
+
 CsrfHelper::validateToken(); // Validates the CSRF token
 
 $role = $_POST['role'] ?? $_SESSION['role'] ?? null;

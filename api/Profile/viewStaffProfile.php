@@ -2,7 +2,8 @@
 session_start();
 header("Content-Type: application/json; charset=UTF-8");
 include (__DIR__ . '/../../includes/conf.php');
-
+include(__DIR__ . '/../../includes/CsrfHelper.php');
+CsrfHelper::validateToken();
 $staff_id = $_POST['user_id'] ?? $_SESSION['user_id'] ?? null;
 $role = $_POST['role'] ?? $_SESSION['role'] ?? null;
 

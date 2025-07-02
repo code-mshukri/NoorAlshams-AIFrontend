@@ -75,7 +75,11 @@ const AdminAnnouncements = () => {
     }
   )
 
-  const announcements = announcementsData?.data || []
+  const announcements = Array.isArray(announcementsData?.data)
+  ? announcementsData.data
+  : Array.isArray(announcementsData)
+    ? announcementsData
+    : []
 
   // Handle form submission
   const handleSubmit = (e) => {

@@ -3,7 +3,7 @@ header("Content-Type: application/json");
 include(__DIR__ . "/../../includes/conf.php");
 include(__DIR__ . "/../../includes/CsrfHelper.php"); // CSRF protection
 include(__DIR__ . "/../../includes/NotificationHelper.php"); // Notification support
-session_start();
+
 CsrfHelper::validateToken();
 
 date_default_timezone_set('Asia/Jerusalem');

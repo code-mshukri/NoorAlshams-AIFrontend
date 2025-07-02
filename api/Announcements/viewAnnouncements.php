@@ -2,11 +2,19 @@
 
 header("Content-Type: application/json");
 include(__DIR__."/../../includes/conf.php");
-session_start();
+include(__DIR__."/../../includes/CsrfHelper.php");
+
+CsrfHelper::validateToken(); //Validates the CSRF token to prevent CSRF attacks. (Cross-Site Request Forgery)
+
+
+
 
 try{
-$admin_id = $_POST['user_id'] ?? $_SESSION['user_id'] ?? null;
-$role = $_POST['role'] ?? $_SESSION['role'] ?? null;
+$admin_id = $_SESSION['user_id'] ?? $_POST['user_id'] ??  null;
+$role = $_SESSION['role'] ?? $_POST['role'] ??  null;
+
+
+
 
 if (!$role || !$admin_id) {
     throw new Exception("Missing required fields.");

@@ -1,7 +1,7 @@
 <?php
 header("Content-Type: application/json");
 include(__DIR__ . '/../../includes/conf.php');
-session_start();
+
 
 $email = $_POST['email'] ?? $_SESSION['email_to_verify'] ?? null;
 if(!$email){

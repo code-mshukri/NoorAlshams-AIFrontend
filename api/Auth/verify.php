@@ -2,8 +2,8 @@
 // Sets the header to return JSON, useful for Postman or JS apps
 header("Content-Type: application/json");
 
-// Starts a session (not needed unless you plan to store session data later)
-session_start(); 
+
+
 
 // Database connection
 include(__DIR__ . '/../../includes/conf.php');

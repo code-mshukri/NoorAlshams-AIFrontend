@@ -48,6 +48,8 @@ if($result->num_rows === 1){
 
         $conn->close();
 
+    $_SESSION['csrf_token'] = $csrf_token;
+
         echo json_encode([
     "status" => "success",
     "message" => "Login Successful",

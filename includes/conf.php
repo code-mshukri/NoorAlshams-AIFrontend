@@ -11,7 +11,9 @@ $allowedOrigins = ['http://localhost:3000'];
 if (in_array($origin, $allowedOrigins)) {
     header("Access-Control-Allow-Origin: $origin");
 }
-
+else {
+    header("Access-Control-Allow-Origin: http://localhost:3000"); // fallback default during dev
+}
 // ✅ CORS Headers
 header("Access-Control-Allow-Credentials: true");
 header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, x-csrf-token");

@@ -4,8 +4,6 @@
 header("Content-Type: application/json");
 
 
-//Starts a session, which lets us store data..
-session_start();   
 
 //Database connection
 include(__DIR__ . '/../../includes/conf.php');

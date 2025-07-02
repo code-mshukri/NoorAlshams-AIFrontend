@@ -2,11 +2,10 @@
 header("Content-Type: application/json");
 include(__DIR__ . '/../../includes/conf.php');
 include(__DIR__ . '/../../includes/CsrfHelper.php');
-session_start();
 CsrfHelper::validateToken();
 
-$client_id = $_POST['user_id'] ?? $_SESSION['user_id'] ?? null;
-$role = $_POST['role'] ?? $_SESSION['role'] ?? null;
+$client_id = $_SESSION['user_id'] ?? $_POST['user_id'] ?? null;
+$role =$_SESSION['role'] ??  $_POST['role'] ?? null;
 
 if (!$client_id || $role !== 'client') {
     echo json_encode(["status" => "error", "message" => "Unauthorized"]);

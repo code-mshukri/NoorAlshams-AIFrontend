@@ -14,9 +14,9 @@ const Footer = () => {
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center space-x-2 space-x-reverse mb-4">
               <img  
-                src="uploads/326990118_1174552563255369_3350075490533963167_n-removebg-preview1.png" 
+                src="/uploads/326990118_1174552563255369_3350075490533963167_n-removebg-preview1.png" 
                 alt="قصر نور الشمس" 
-                className="h-10 w-10 object-contain"
+                className="h-20 w-20 object-contain"
               />
               <span className="text-xl font-bold">قصر نور الشمس</span>
             </div>

@@ -1,7 +1,7 @@
 <?php 
 header("Content-Type: application/json");
 include(__DIR__ . '/../../includes/conf.php');
-session_start(); 
+
 
 
 if($_SERVER['REQUEST_METHOD'] === 'POST'){

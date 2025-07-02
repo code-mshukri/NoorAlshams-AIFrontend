@@ -1,7 +1,7 @@
 <?php 
 header("Content-Type: application/json");
 include(__DIR__ . '/../../includes/conf.php');  //Connects with the database.
-session_start();
+
 
 $client_id = $_SESSION['user_id'] ?? null;
 $role = $_SESSION['role'] ?? null;
@@ -67,7 +67,7 @@ if(!$result || !$id || $role !== 'client')
     JOIN users staff ON a.staff_id = staff.id
     JOIN services s ON a.service_id = s.id 
     WHERE a.client_id = ?
-    ORDER BY a.date, a.time
+    ORDER BY a.date DESC, a.time DESC
     LIMIT ? OFFSET ?
     ";
     $stmt = $conn->prepare($sql);

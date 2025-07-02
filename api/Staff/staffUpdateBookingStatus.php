@@ -3,7 +3,7 @@ header("Content-Type: application/json");
 include(__DIR__ . '/../../includes/conf.php');
 include(__DIR__ . '/../../includes/CsrfHelper.php'); //Includes the CSRF helper to validate the CSRF token.
 include(__DIR__ . '/../../includes/NotificationHelper.php'); //Includes the Notification helper to send notifications to the user.
-session_start();
+
 CsrfHelper::validateToken(); //Validates the CSRF token to prevent CSRF attacks. (Cross-Site Request Forgery)
 
 $staff_admin_id = $_POST['user_id'] ?? $_SESSION['user_id'] ?? null;

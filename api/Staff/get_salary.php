@@ -1,7 +1,6 @@
 <?php 
 header("Content-Type: application/json");
 include(__DIR__."/../../includes/conf.php");
-session_start();
 date_default_timezone_set('Asia/Jerusalem');
 
 

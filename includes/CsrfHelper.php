@@ -16,7 +16,7 @@ class CsrfHelper
     public static function validateToken()
 {
     if (session_status() === PHP_SESSION_NONE) {
-    session_start();
+    
 }
     $sessionToken = $_SESSION['csrf_token'] ?? '';
 

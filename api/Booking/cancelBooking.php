@@ -1,6 +1,6 @@
 <?php 
 header("Content-Type: application/json");
-session_start();
+
 include(__DIR__ . '/../../includes/conf.php');
 include(__DIR__ . '/../../includes/CsrfHelper.php'); //Includes the CSRF helper to validate the CSRF token.
 include(__DIR__ . '/../../includes/NotificationHelper.php'); //Includes the Notification helper to send notifications to the user.

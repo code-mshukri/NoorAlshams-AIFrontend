@@ -1,6 +1,6 @@
 <?php 
 header("Content-Type: application/json");
-session_start(); 
+
 include(__DIR__ . '/../../includes/conf.php');
 include(__DIR__ . '/../../includes/CsrfHelper.php'); 
 include(__DIR__ . '/../../includes/NotificationHelper.php'); 

@@ -2,7 +2,7 @@
 include_once __DIR__."/../../includes/conf.php";
 include_once __DIR__."/../../includes/CsrfHelper.php";
 header('Content-Type: application/json');
-session_start();
+
 
 CsrfHelper::validateToken();
 

@@ -8,7 +8,7 @@ const api = axios.create({
   withCredentials: true,
   timeout: 10000,
   headers: {
-    'Content-Type': 'application/json',
+    
   },
 })
 
@@ -20,6 +20,15 @@ api.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`
     }
     
+
+if (config.data instanceof FormData) {
+  // Let Axios set correct multipart boundary
+  delete config.headers['Content-Type']
+} else {
+  config.headers['Content-Type'] = 'application/json'
+}
+
+
     // Add CSRF token for POST requests
     if (config.method === 'post' || config.method === 'put' || config.method === 'delete') {
       const csrfToken = localStorage.getItem('auth_token')

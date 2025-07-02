@@ -2,7 +2,7 @@
 header("Content-Type: application/json");
 include(__DIR__ . "/../../includes/conf.php");
 include(__DIR__ . "/../../includes/CsrfHelper.php");
-session_start();
+
 CsrfHelper::validateToken();
 
 // Cache mechanism (30s)

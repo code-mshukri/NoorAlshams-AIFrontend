@@ -1,7 +1,7 @@
 <?php
 include_once __DIR__."/../../includes/conf.php";
 include_once __DIR__."/../../includes/CsrfHelper.php";
-session_start();
+
 
 CsrfHelper::validateToken();
 

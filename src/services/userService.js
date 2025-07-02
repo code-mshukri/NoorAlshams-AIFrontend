@@ -1,4 +1,5 @@
-import { toast } from 'react-toastify'
+import api from './api'
+
 
 export const userServices = {
   /**

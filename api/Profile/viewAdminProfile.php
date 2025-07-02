@@ -2,9 +2,9 @@
 
 header("Content-Type: application/json; charset=UTF-8");
 include (__DIR__ . '/../../includes/conf.php');
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+include(__DIR__ . '/../../includes/CsrfHelper.php');
+CsrfHelper::validateToken();
+
 
 $admin_id = $_SESSION['user_id'] ?? $_POST['user_id'] ??  null;
 $role = $_SESSION['role'] ?? $_POST['role'] ??  null;

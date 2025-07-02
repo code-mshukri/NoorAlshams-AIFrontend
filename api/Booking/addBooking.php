@@ -1,12 +1,11 @@
 <?php 
-session_start();
+
 include(__DIR__ . '/../../includes/conf.php');
 include(__DIR__ . '/../../includes/CsrfHelper.php');
 include(__DIR__ . '/../../includes/NotificationHelper.php');
 header("Content-Type: application/json");
 
-// 🛑 Temporarily disable CSRF check for testing
-// CsrfHelper::validateToken();
+CsrfHelper::validateToken();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $client_id = $_SESSION['user_id'] ?? $_POST['user_id'] ??  null;
@@ -68,9 +67,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $client_name = $client['full_name'] ?? 'Unknown';
 
+    error_log("Booking Insert: client=$client_id, service=$service_id, date=$date, time=$time, price=$price, notes=$notes");
+
     // ✅ Insert appointment (no staff)
     $stmt = $conn->prepare("INSERT INTO appointments (client_id, service_id, date, time, price, health_contraindications) VALUES (?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("iissss", $client_id, $service_id, $date, $time, $price, $notes);
+    $stmt->bind_param("iissds", $client_id, $service_id, $date, $time, $price, $notes);
     $success = $stmt->execute();
     $stmt->close();
 
