@@ -30,6 +30,7 @@ const AdminAppointments = React.lazy(() => import('./pages/admin/Appointments'))
 const AdminProfile = React.lazy(() => import('./pages/admin/Profile'))
 const AdminAnnouncements = React.lazy(()=> import('./pages/admin/Announcements'))
 const AdminStaff = React.lazy(()=> import('./pages/admin/Staff'))
+const AdminFeedback = React.lazy(()=> import('./pages/admin/Feedback'))
 const StaffDashboard = React.lazy(() => import('./pages/staff/Dashboard'))
 const StaffSchedule = React.lazy(() => import('./pages/staff/Schedule'))
 const StaffProfile = React.lazy(() => import('./pages/staff/Profile'))
@@ -154,7 +155,7 @@ function App() {
 
               {/* Admin Routes */}
             <Route
-              path="/admin"
+              path="/admin/dashbaord"
               element={
                 <ProtectedRoute allowedRoles={['admin']}>
                   {renderMotionPage(AdminDashboard)}
@@ -211,11 +212,20 @@ function App() {
               }
             />
 
+            <Route
+              path="/admin/feedback"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  {renderMotionPage(AdminFeedback)}
+                </ProtectedRoute>
+              }
+            />
+
             
 
                           {/* Staff Routes */}
             <Route
-              path="/staff"
+              path="/staff/dashboard"
               element={
                 <ProtectedRoute allowedRoles={['staff']}>
                   {renderMotionPage(StaffDashboard)}

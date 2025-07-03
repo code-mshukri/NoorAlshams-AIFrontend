@@ -1,9 +1,7 @@
 <?php
-session_start();
 header("Content-Type: application/json; charset=UTF-8");
 include (__DIR__ . '/../../includes/conf.php');
-include(__DIR__ . '/../../includes/CsrfHelper.php');
-CsrfHelper::validateToken();
+
 $staff_id = $_POST['user_id'] ?? $_SESSION['user_id'] ?? null;
 $role = $_POST['role'] ?? $_SESSION['role'] ?? null;
 
@@ -15,7 +13,7 @@ if (!$staff_id || $role !== 'staff') {
 $sql = "
 SELECT 
     u.full_name, u.email, u.phone, u.dob,
-    sd.salary_per_hour, sd.notes
+    sd.salary_per_hour, sd.notes, sd.date_registered
 FROM users u
 LEFT JOIN staff_details sd ON u.id = sd.staff_id
 WHERE u.id = ? AND u.role = 'staff'

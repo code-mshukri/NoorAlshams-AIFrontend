@@ -81,7 +81,10 @@ $interval = $check_in_time->diff($check_out_time);
 $duration_minutes = ($interval->days * 24 * 60) + ($interval->h * 60) + $interval->i;
 
 
-$sql = "UPDATE work_log SET check_out = NOW(), duration_minutes = ? WHERE id = ?";
+$sql = "UPDATE work_log 
+        SET check_out = NOW(), duration_minutes = ?, date = CURDATE()
+        WHERE id = ?";
+
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("ii", $duration_minutes, $work_log_id);
 

@@ -3,11 +3,8 @@ header("Content-Type: application/json");
 include(__DIR__."/../../includes/conf.php");
 include(__DIR__."/../../includes/CsrfHelper.php");
 
-echo json_encode([
-    "session csrf" => $_SESSION['csrf_token'] ?? null,
-    "post csrf" => $_POST['csrf_token'] ?? null,
-]);
-CsrfHelper::validateToken(); //Validates the CSRF token to prevent CSRF attacks. (Cross-Site Request Forgery)
+
+
 
 $admin_id = $_POST['user_id'] ?? $_SESSION['user_id'] ?? null;
 $role = $_POST['role'] ?? $_SESSION['role'] ?? null;

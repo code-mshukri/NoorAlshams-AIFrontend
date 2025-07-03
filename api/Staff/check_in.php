@@ -8,7 +8,7 @@ CsrfHelper::validateToken(); //Validates the CSRF token to prevent CSRF attacks.
 date_default_timezone_set('Asia/Jerusalem');
 
 
-$staff_id = $_POST['user_id'] ?? $_SESSION['user_id'] ?? null;
+$staff_id = $_POST['user_id'] ?? $_SESSION['user_id'] ?? null;  
 $role = $_POST['role'] ?? $_SESSION['role'] ?? null;
 
 if (!$role || !$staff_id) {
@@ -67,7 +67,7 @@ if($result->num_rows > 0){
 }
 
 
-$sql = "INSERT INTO work_log (staff_id, check_in) VALUES (?, NOW())";
+$sql = "INSERT INTO work_log (staff_id, check_in, date) VALUES (?, NOW(), CURDATE())";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $staff_id);
 if(!$stmt->execute()){

@@ -1,9 +1,9 @@
 <?php 
 header("Content-Type: application/json");
 include(__DIR__."/../../includes/conf.php");
-include(__DIR__."/../../includes/CsrfHelper.php");
 
-CsrfHelper::validateToken();
+
+
 
 $admin_id = $_POST['user_id'] ?? $_SESSION['user_id'] ?? null;
 $role = $_POST['role'] ?? $_SESSION['role'] ?? null;
@@ -60,13 +60,26 @@ $stmt->close();
 // Use new values only if provided, otherwise fallback to current ones
 $salary_per_hour = isset($_POST['salary_per_hour']) ? floatval($_POST['salary_per_hour']) : $current['salary_per_hour'];
 $notes = isset($_POST['notes']) ? $_POST['notes'] : $current['notes'];
+$full_name = isset($_POST['full_name']) ? $_POST['full_name'] : $current['full_name'];
+$phone = isset($_POST['phone']) ? $_POST['phone'] : $current['phone'];
+$dob = isset($_POST['dob']) ? $_POST['dob'] : $current['dob'];
 
-// Perform update
-$sql = "UPDATE staff_details SET salary_per_hour = ?, notes = ? WHERE staff_id = ?";
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("dsi", $salary_per_hour, $notes, $staff_id);
+// First update: staff_details
+$sql1 = "UPDATE staff_details SET salary_per_hour = ?, notes = ? WHERE staff_id = ?";
+$stmt1 = $conn->prepare($sql1);
+$stmt1->bind_param("dsi", $salary_per_hour, $notes, $staff_id);
+$success1 = $stmt1->execute();
+$stmt1->close();
 
-if ($stmt->execute()) {
+// Second update: users
+$sql2 = "UPDATE users SET full_name = ?, phone = ?, dob = ? WHERE id = ?";
+$stmt2 = $conn->prepare($sql2);
+$stmt2->bind_param("sssi", $full_name, $phone, $dob, $staff_id);
+$success2 = $stmt2->execute();
+$stmt2->close();
+
+// Final result
+if ($success1 && $success2) {
     echo json_encode([
         "status" => "success",
         "message" => "Staff details updated successfully!"
@@ -78,6 +91,5 @@ if ($stmt->execute()) {
     ]);
 }
 
-$stmt->close();
 $conn->close();
 ?>

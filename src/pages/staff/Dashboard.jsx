@@ -1,6 +1,6 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Calendar, Clock, CheckCircle, Users, LogIn, LogOut } from 'lucide-react'
+import { Calendar, Clock, CheckCircle, Users, LogIn, LogOut, DollarSign } from 'lucide-react'
 import { useQuery, useMutation, useQueryClient } from 'react-query'
 import { toast } from 'react-toastify'
 import CountUp from 'react-countup'
@@ -8,16 +8,32 @@ import Header from '../../components/layout/Header'
 import Footer from '../../components/layout/Footer'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import { staffService } from '../../services/staffService'
+import { useAuth } from '../../contexts/AuthContext'
 
 const StaffDashboard = () => {
   const queryClient = useQueryClient()
+  const { user } = useAuth()
+  const [salaryPeriod, setSalaryPeriod] = useState('month')
 
   // Fetch staff schedule
-  const { data: scheduleData, isLoading } = useQuery(
-    'staff-schedule',
-    () => staffService.getStaffSchedule(),
+ const today = new Date().toISOString().split('T')[0] // format: YYYY-MM-DD
+
+const { data: scheduleData, isLoading } = useQuery(
+  'staff-today-appointments',
+  () => staffService.getStaffSchedule(null, today, today), // from and to = today
+  {
+    refetchOnWindowFocus: false,
+  }
+)
+
+
+  // Fetch salary information
+  const { data: salaryData, isLoading: isSalaryLoading } = useQuery(
+    ['staff-salary', salaryPeriod],
+    () => staffService.getSalaryInfo(user?.id, salaryPeriod),
     {
       refetchOnWindowFocus: false,
+      enabled: !!user?.id
     }
   )
 
@@ -42,6 +58,7 @@ const StaffDashboard = () => {
       onSuccess: () => {
         toast.success('تم تسجيل الانصراف بنجاح!')
         queryClient.invalidateQueries('staff-attendance')
+        queryClient.invalidateQueries(['staff-salary'])
       },
       onError: (error) => {
         toast.error(error.message || 'فشل في تسجيل الانصراف')
@@ -49,39 +66,10 @@ const StaffDashboard = () => {
     }
   )
 
-  const schedule = scheduleData?.data || {}
-  const todayAppointments = schedule[new Date().toISOString().split('T')[0]] || []
+  const todayAppointments = scheduleData?.data || []
 
-  const stats = [
-    {
-      title: 'مواعيد اليوم',
-      value: todayAppointments.length,
-      icon: Calendar,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-100'
-    },
-    {
-      title: 'المواعيد المكتملة',
-      value: todayAppointments.filter(a => a.status === 'completed').length,
-      icon: CheckCircle,
-      color: 'text-green-600',
-      bgColor: 'bg-green-100'
-    },
-    {
-      title: 'المواعيد المؤكدة',
-      value: todayAppointments.filter(a => a.status === 'confirmed').length,
-      icon: Clock,
-      color: 'text-yellow-600',
-      bgColor: 'bg-yellow-100'
-    },
-    {
-      title: 'إجمالي العملاء',
-      value: new Set(todayAppointments.map(a => a.client_name)).size,
-      icon: Users,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-100'
-    }
-  ]
+
+
 
   const handleCheckIn = () => {
     checkInMutation.mutate()
@@ -146,33 +134,98 @@ const StaffDashboard = () => {
           </div>
         </motion.div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {stats.map((stat, index) => {
-            const Icon = stat.icon
-            return (
-              <motion.div
-                key={stat.title}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className="card p-6"
+        {/* Salary Information */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="card p-6 mb-8"
+        >
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold text-gray-900">معلومات الراتب</h2>
+            <div className="flex space-x-2 space-x-reverse">
+              <select
+                value={salaryPeriod}
+                onChange={(e) => setSalaryPeriod(e.target.value)}
+                className="input-field text-sm py-1"
               >
-                <div className="flex items-center justify-between">
+                <option value="day">اليوم</option>
+                <option value="week">الأسبوع</option>
+                <option value="month">الشهر</option>
+                <option value="all">الكل</option>
+              </select>
+            </div>
+          </div>
+          
+          {isSalaryLoading ? (
+            <div className="flex justify-center items-center h-32">
+              <LoadingSpinner size="sm" />
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="flex items-center space-x-3 space-x-reverse mb-2">
+                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                    <Clock className="w-5 h-5 text-blue-600" />
+                  </div>
                   <div>
-                    <p className="text-sm text-gray-600 mb-1">{stat.title}</p>
-                    <p className="text-3xl font-bold text-gray-900">
-                      <CountUp end={stat.value} duration={2} />
+                    <h3 className="text-sm text-gray-500">ساعات العمل</h3>
+                    <p className="text-2xl font-bold text-gray-900">
+                      <CountUp 
+                        end={salaryData?.hours_worked || 0} 
+                        duration={1.5} 
+                        decimals={2}
+                        decimal="."
+                      />
                     </p>
                   </div>
-                  <div className={`w-12 h-12 ${stat.bgColor} rounded-full flex items-center justify-center`}>
-                    <Icon className={`w-6 h-6 ${stat.color}`} />
+                </div>
+              </div>
+              
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="flex items-center space-x-3 space-x-reverse mb-2">
+                  <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                    <DollarSign className="w-5 h-5 text-green-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm text-gray-500">الراتب بالساعة</h3>
+                    <p className="text-2xl font-bold text-gray-900">
+                      <CountUp 
+                        end={salaryData?.salary_per_hour || 0} 
+                        duration={1.5} 
+                        decimals={2}
+                        decimal="."
+                        suffix=" ₪"
+                      />
+                    </p>
                   </div>
                 </div>
-              </motion.div>
-            )
-          })}
-        </div>
+              </div>
+              
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="flex items-center space-x-3 space-x-reverse mb-2">
+                  <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
+                    <DollarSign className="w-5 h-5 text-primary-200" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm text-gray-500">الراتب المستحق</h3>
+                    <p className="text-2xl font-bold text-primary-200">
+                      <CountUp 
+                        end={salaryData?.calculated_salary || 0} 
+                        duration={1.5} 
+                        decimals={2}
+                        decimal="."
+                        suffix=" ₪"
+                      />
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </motion.div>
+
+        
 
         {/* Today's Appointments */}
         <motion.div
@@ -187,7 +240,7 @@ const StaffDashboard = () => {
             <div className="space-y-4">
               {todayAppointments.map((appointment) => (
                 <div
-                  key={appointment.id}
+                  key={appointment.appointment_id}
                   className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
                 >
                   <div className="flex items-center space-x-4 space-x-reverse">

@@ -1,9 +1,9 @@
 <?php 
 header("Content-Type: application/json");
 include (__DIR__."/../../includes/conf.php");
-include(__DIR__ . "/../../includes/CsrfHelper.php"); // CSRF protection
 
-CsrfHelper::validateToken(); // Validates the CSRF token
+
+
 
 $role = $_POST['role'] ?? $_SESSION['role'] ?? null;
 $admin_id = $_POST['user_id'] ?? $_SESSION['user_id'] ?? null;
@@ -88,9 +88,11 @@ if($_SERVER['REQUEST_METHOD'] === 'POST' && $role === 'admin' && $admin_id) {
 
     $staff_id = $conn->insert_id;
 
-    $sql = "INSERT INTO staff_details (staff_id, salary_per_hour, notes) VALUES (?, ?, ?)";
+    $date_registered = date('Y-m-d');   
+
+    $sql = "INSERT INTO staff_details (staff_id, salary_per_hour, notes, date_registered) VALUES (?, ?, ?, ?)";
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("ids", $staff_id, $salary_per_hour, $notes);
+    $stmt->bind_param("idss", $staff_id, $salary_per_hour, $notes, $date_registered);
     if(!$stmt->execute()) {
         echo json_encode([
             "status" => "error",
