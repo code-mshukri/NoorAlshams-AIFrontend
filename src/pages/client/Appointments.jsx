@@ -238,9 +238,15 @@ const [availableServices, setAvailableServices] = useState([])
 
   // Get appointments for a specific day
   const getAppointmentsForDay = (day) => {
-    const dateString = day.date.toISOString().split('T')[0]
-    return appointments.filter(appointment => appointment.date === dateString)
-  }
+  const targetDate = day.date.toISOString().split('T')[0]
+
+  return appointments.filter((appointment) => {
+    const appointmentDate = new Date(appointment.date)
+    const formattedAppointmentDate = appointmentDate.toISOString().split('T')[0]
+    return formattedAppointmentDate === targetDate
+  })
+}
+
 
   // Get status badge color
   const getStatusBadgeColor = (status) => {
@@ -462,18 +468,50 @@ const [availableServices, setAvailableServices] = useState([])
                     </span>
                   </div>
                   
-                  <div className="mt-1 space-y-1 max-h-20 overflow-y-auto">
-                    {dayAppointments.map((appointment) => (
-                      <div
-                        key={appointment.id}
-                        onClick={() => handleAppointmentClick(appointment)}
-                        className="text-xs p-1 rounded bg-primary-50 border-r-2 border-primary-200 cursor-pointer hover:bg-primary-100 transition-colors"
-                      >
-                        <div className="font-medium truncate">{appointment.service_name}</div>
-                        <div className="text-gray-600">{appointment.time.substring(0, 5)}</div>
-                      </div>
-                    ))}
-                  </div>
+                  <div className="mt-1 space-y-1 max-h-28 overflow-y-auto">
+  {dayAppointments.map((appointment) => (
+    <div
+      key={appointment.id}
+      className="relative bg-primary-50 border border-primary-200 p-2 rounded text-xs flex flex-col gap-1"
+    >
+      <div className="font-medium truncate">{appointment.service_name}</div>
+      <div className="text-gray-600">{appointment.time.substring(0, 5)}</div>
+      <div className="absolute top-1 right-1 flex space-x-1 space-x-reverse">
+        {/* View details */}
+        <button
+          onClick={() => handleAppointmentClick(appointment)}
+          className="text-gray-600 hover:text-blue-600"
+          title="تفاصيل"
+        >
+          <Calendar className="w-4 h-4" />
+        </button>
+
+        {/* Edit (only for pending or confirmed) */}
+        {(appointment.status === 'pending' || appointment.status === 'confirmed') && (
+          <button
+            onClick={() => handleEditClick(appointment)}
+            className="text-blue-600 hover:text-blue-800"
+            title="تعديل"
+          >
+            <Edit className="w-4 h-4" />
+          </button>
+        )}
+
+        {/* Delete (only for pending or confirmed) */}
+        {(appointment.status === 'pending' || appointment.status === 'confirmed') && (
+          <button
+            onClick={() => handleCancelAppointment(appointment.id)}
+            className="text-red-600 hover:text-red-800"
+            title="إلغاء"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        )}
+      </div>
+    </div>
+  ))}
+</div>
+
                 </div>
               )
             })}

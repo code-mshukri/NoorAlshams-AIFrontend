@@ -2,6 +2,8 @@
 header("Content-Type: application/json");
 include(__DIR__."/../../includes/conf.php");
 
+file_put_contents('debug.txt', print_r($_POST, true));
+
 
 $admin_id = $_POST['user_id'] ?? $_SESSION['user_id'] ?? null;
 $role = $_POST['role'] ?? $_SESSION['role'] ?? null;
@@ -123,13 +125,34 @@ if (!empty($conditions)) {
     $whereClause = 'WHERE ' . implode(' AND ', $conditions);
 }
 
-$page_num = isset($_GET['page']) && is_numeric($_GET['page']) ? intval($_GET['page']) : 1;  //This is ternary operator, it's syntax is: condition ? value_if_true : value_if_false
+$page_num = isset($_POST['page']) && is_numeric($_POST['page']) ? intval($_POST['page']) : 1;  //This is ternary operator, it's syntax is: condition ? value_if_true : value_if_false
     $limit = 10;
     $offset = ($page_num - 1) * $limit;
     $types .= 'ii'; // 'i' for integer (limit and offset)
 
 $params [] = $limit;  // for pagination
 $params [] = $offset; // for pagination
+
+// Count total matching results for pagination
+$count_sql = "
+    SELECT COUNT(*) as total
+    FROM appointments a
+    JOIN users u ON a.client_id = u.id
+    JOIN services s ON a.service_id = s.id
+    JOIN users st ON a.staff_id = st.id
+    $whereClause
+";
+
+$count_stmt = $conn->prepare($count_sql);
+if (!empty($conditions)) {
+    // Exclude the pagination params (limit and offset) for count query
+    $count_stmt->bind_param(substr($types, 0, -2), ...array_slice($params, 0, -2));
+}
+$count_stmt->execute();
+$count_result = $count_stmt->get_result();
+$total_results = $count_result->fetch_assoc()['total'] ?? 0;
+$total_pages = ceil($total_results / $limit);
+$count_stmt->close();
 
 
 $sql = "
@@ -174,10 +197,13 @@ while($row = $result->fetch_assoc()){
 
 echo json_encode(
     [
-        "status" => "success!",
-        "data" => $appointments
+        "status" => "success",
+        "data" => $appointments,
+        "total_results" => $total_results,
+        "total_pages" => $total_pages
     ]
-    );
+);
+
 
     $stmt->close();
     $conn->close();

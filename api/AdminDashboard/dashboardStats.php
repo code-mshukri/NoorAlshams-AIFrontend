@@ -2,7 +2,12 @@
 header("Content-Type: application/json");
 include(__DIR__ . "/../../includes/conf.php");
 include(__DIR__ . "/../../includes/CsrfHelper.php");
-
+file_put_contents(__DIR__ . '/debug.log', json_encode([
+    'SESSION' => $_SESSION,
+    'POST' => $_POST,
+    'HEADER_X_CSRF' => $_SERVER['HTTP_X_CSRF_TOKEN'] ?? null
+], JSON_PRETTY_PRINT));
+            
 CsrfHelper::validateToken();
 
 // Cache mechanism (30s)
