@@ -1,10 +1,11 @@
-import React, { useState, useCallback, useMemo } from 'react'
+import React, { useState, useCallback, useMemo, useRef, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { useQuery, useMutation, useQueryClient } from 'react-query'
 import { toast } from 'react-toastify'
 import { 
   Search, Plus, Edit, Eye, RefreshCw, ChevronDown, ChevronUp, 
-  User, Phone, Mail, Calendar, DollarSign, Save, X, Briefcase
+  User, Phone, Mail, Calendar, DollarSign, Save, X, Briefcase,
+  Clock, CheckCircle, XCircle
 } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import Header from '../../components/layout/Header'
@@ -23,6 +24,27 @@ const AdminStaff = () => {
   const [currentPage, setCurrentPage] = useState(1)
   const [showScheduleModal, setShowScheduleModal] = useState(false)
   const [selectedStaffSchedule, setSelectedStaffSchedule] = useState(null)
+  const [showSalaryModal, setShowSalaryModal] = useState(false)
+  const [salaryPeriod, setSalaryPeriod] = useState('month')
+
+  const addModalRef = useRef(null)
+const editModalRef = useRef(null)
+const salaryModalRef = useRef(null)
+const scheduleModalRef = useRef(null)
+
+useEffect(() => {
+  if (showAddModal || showEditModal || showSalaryModal || showScheduleModal) {
+    // Scroll farther for modals with more content (salary/schedule)
+    const scrollPosition =
+      showSalaryModal || showScheduleModal ? 380 : 280
+
+    window.scrollTo({ top: scrollPosition, behavior: 'smooth' })
+  }
+}, [showAddModal, showEditModal, showSalaryModal, showScheduleModal])
+
+
+
+  
   const queryClient = useQueryClient()
   const itemsPerPage = 10
 
@@ -60,6 +82,8 @@ const AdminStaff = () => {
     }
   )
 
+  
+
   // Fetch staff schedule when needed
   const { 
     data: scheduleData, 
@@ -74,6 +98,24 @@ const AdminStaff = () => {
       onError: (error) => {
         console.error('Error fetching schedule:', error)
         toast.error('فشل في تحميل جدول الموظف')
+      }
+    }
+  )
+
+  // Fetch staff salary when needed
+  const { 
+    data: salaryData, 
+    isLoading: isLoadingSalary,
+    refetch: refetchSalary
+  } = useQuery(
+    ['staff-salary', selectedStaff?.staff_id, salaryPeriod],
+    () => manageStaff.getSalaryInfo(selectedStaff?.staff_id, salaryPeriod),
+    {
+      enabled: !!selectedStaff?.staff_id && showSalaryModal,
+      refetchOnWindowFocus: false,
+      onError: (error) => {
+        console.error('Error fetching salary info:', error)
+        toast.error('فشل في تحميل معلومات الراتب')
       }
     }
   )
@@ -215,11 +257,24 @@ const AdminStaff = () => {
     setShowScheduleModal(true)
   }
 
+  // Handle view salary button click
+  const handleViewSalary = (staff) => {
+    setSelectedStaff(staff)
+    setSalaryPeriod('month')
+    setShowSalaryModal(true)
+    setTimeout(() => {
+      refetchSalary()
+    }, 100)
+  }
+
   // Calculate total pages
   const totalPages = useMemo(() => {
     if (!staffData?.total) return 1
     return Math.ceil(staffData.total / itemsPerPage)
   }, [staffData])
+
+  const appointments = Array.isArray(scheduleData?.data) ? scheduleData.data : []
+
 
   return (
     <div className="min-h-screen gradient-bg">
@@ -416,6 +471,13 @@ const AdminStaff = () => {
                             title="عرض الجدول"
                           >
                             <Eye className="w-5 h-5" />
+                          </button>
+                          <button
+                            onClick={() => handleViewSalary(staff)}
+                            className="text-yellow-600 hover:text-yellow-900"
+                            title="عرض الراتب"
+                          >
+                            <DollarSign className="w-5 h-5" />
                           </button>
                         </div>
                       </td>
@@ -659,6 +721,7 @@ const AdminStaff = () => {
           </div>
         </div>
       )}
+      
 
       {/* Edit Staff Modal */}
       {showEditModal && selectedStaff && (
@@ -833,97 +896,190 @@ const AdminStaff = () => {
             ) : (
               <div className="space-y-6">
                 {/* Weekly Schedule */}
-                <div className="card p-4">
-                  <h3 className="text-lg font-bold text-gray-900 mb-4">المواعيد القادمة</h3>
-                  
-                  {scheduleData?.data && Object.keys(scheduleData.data).length > 0 ? (
-                    <div className="space-y-4">
-                      {Object.entries(scheduleData.data)
-                        .sort(([dateA], [dateB]) => new Date(dateA) - new Date(dateB))
-                        .map(([date, appointments]) => (
-                          <div key={date} className="border-b border-gray-200 pb-4 last:border-b-0">
-                            <h4 className="font-bold text-gray-900 mb-3">
-                              {formatDate(date)}
-                            </h4>
-                            
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                              {appointments.map((appointment) => (
-                                <div
-                                  key={appointment.appointment_id}
-                                  className="p-3 bg-gray-50 rounded-lg border-r-4 border-primary-200"
-                                >
-                                  <div className="flex justify-between items-center mb-2">
-                                    <span className="text-sm font-medium text-gray-900">
-                                      {appointment.time}
-                                    </span>
-                                    <span className={`text-xs px-2 py-1 rounded-full ${
-                                      appointment.status === 'completed' 
-                                        ? 'bg-green-100 text-green-800'
-                                        : appointment.status === 'confirmed'
-                                        ? 'bg-blue-100 text-blue-800'
-                                        : appointment.status === 'pending'
-                                        ? 'bg-yellow-100 text-yellow-800'
-                                        : 'bg-gray-100 text-gray-800'
-                                    }`}>
-                                      {appointment.status === 'completed' && 'مكتمل'}
-                                      {appointment.status === 'confirmed' && 'مؤكد'}
-                                      {appointment.status === 'pending' && 'في الانتظار'}
-                                      {appointment.status === 'cancelled' && 'ملغي'}
-                                    </span>
-                                  </div>
-                                  <div className="flex items-center space-x-2 space-x-reverse">
-                                    <div className="w-6 h-6 bg-primary-100 rounded-full flex items-center justify-center">
-                                      <User className="w-3 h-3 text-primary-200" />
-                                    </div>
-                                    <p className="text-sm text-gray-700 font-medium">
-                                      {appointment.client_name}
-                                    </p>
-                                  </div>
-                                  <p className="text-xs text-gray-600 mt-1">
-                                    {appointment.service_name}
-                                  </p>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8">
-                      <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2">لا توجد مواعيد</h3>
-                      <p className="text-gray-600">لا توجد مواعيد مجدولة لهذا الموظف</p>
-                    </div>
-                  )}
+<div className="card p-4">
+  <h3 className="text-lg font-bold text-gray-900 mb-4">المواعيد القادمة</h3>
+
+  {Array.isArray(scheduleData?.data) && scheduleData.data.length > 0 ? (
+    <div className="space-y-4">
+      {scheduleData.data.map((appointment) => (
+        <div key={appointment.appointment_id} className="border-b border-gray-200 pb-4 last:border-b-0">
+          <h4 className="font-bold text-gray-900 mb-3">{formatDate(appointment.date)}</h4>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="p-3 bg-gray-50 rounded-lg border-r-4 border-primary-200">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-sm font-medium text-gray-900">
+                  {appointment.time}
+                </span>
+                <span className={`text-xs px-2 py-1 rounded-full ${
+                  appointment.status === 'completed'
+                    ? 'bg-green-100 text-green-800'
+                    : appointment.status === 'confirmed'
+                    ? 'bg-blue-100 text-blue-800'
+                    : appointment.status === 'pending'
+                    ? 'bg-yellow-100 text-yellow-800'
+                    : 'bg-gray-100 text-gray-800'
+                }`}>
+                  {appointment.status === 'completed' && 'مكتمل'}
+                  {appointment.status === 'confirmed' && 'مؤكد'}
+                  {appointment.status === 'pending' && 'في الانتظار'}
+                  {appointment.status === 'cancelled' && 'ملغي'}
+                </span>
+              </div>
+
+              <div className="flex items-center space-x-2 space-x-reverse">
+                <div className="w-6 h-6 bg-primary-100 rounded-full flex items-center justify-center">
+                  <User className="w-3 h-3 text-primary-200" />
                 </div>
+                <p className="text-sm text-gray-700 font-medium">
+                  {appointment.client_name}
+                </p>
+              </div>
+              <p className="text-xs text-gray-600 mt-1">
+                {appointment.service_name}
+              </p>
+               <p className="text-xs text-gray-500 mt-1">
+                السعر: ₪{Number(appointment.price).toFixed(2)}
+              </p>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  ) : (
+    <div className="text-center py-8">
+      <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+      <h3 className="text-lg font-semibold text-gray-900 mb-2">لا توجد مواعيد</h3>
+      <p className="text-gray-600">لا توجد مواعيد مجدولة لهذا الموظف</p>
+    </div>
+  )}
+</div>
+
                 
-                {/* Work Statistics */}
-                <div className="card p-4">
-                  <h3 className="text-lg font-bold text-gray-900 mb-4">إحصائيات العمل</h3>
+
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Staff Salary Modal */}
+      {showSalaryModal && selectedStaff && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl p-6 w-full max-w-2xl relative">
+            <button
+              onClick={() => {
+                setShowSalaryModal(false)
+                setSelectedStaff(null)
+              }}
+              className="absolute top-4 left-4 text-gray-400 hover:text-gray-600"
+            >
+              <X className="w-6 h-6" />
+            </button>
+            
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">
+              معلومات راتب {selectedStaff.full_name}
+            </h2>
+            
+            <div className="mb-6">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">الفترة</h3>
+                <div className="flex space-x-2 space-x-reverse">
+                  <button
+                    onClick={() => setSalaryPeriod('day')}
+                    className={`px-3 py-1 rounded-md text-sm ${
+                      salaryPeriod === 'day' 
+                        ? 'bg-primary-200 text-white' 
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    اليوم
+                  </button>
+                  <button
+                    onClick={() => setSalaryPeriod('week')}
+                    className={`px-3 py-1 rounded-md text-sm ${
+                      salaryPeriod === 'week' 
+                        ? 'bg-primary-200 text-white' 
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    الأسبوع
+                  </button>
+                  <button
+                    onClick={() => setSalaryPeriod('month')}
+                    className={`px-3 py-1 rounded-md text-sm ${
+                      salaryPeriod === 'month' 
+                        ? 'bg-primary-200 text-white' 
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    الشهر
+                  </button>
+                  <button
+                    onClick={() => setSalaryPeriod('all')}
+                    className={`px-3 py-1 rounded-md text-sm ${
+                      salaryPeriod === 'all' 
+                        ? 'bg-primary-200 text-white' 
+                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  >
+                    الكل
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            {isLoadingSalary ? (
+              <div className="flex justify-center items-center h-64">
+                <LoadingSpinner />
+              </div>
+            ) : (
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <div className="flex items-center space-x-3 space-x-reverse mb-2">
+                      <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                        <Clock className="w-5 h-5 text-blue-600" />
+                      </div>
+                      <div>
+                        <h3 className="text-sm text-gray-500">ساعات العمل</h3>
+                        <p className="text-2xl font-bold text-gray-900">
+                          {salaryData?.hours_worked || 0}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="bg-gray-50 p-4 rounded-lg">
-                      <h4 className="text-sm text-gray-500 mb-1">المواعيد المكتملة</h4>
-                      <p className="text-2xl font-bold text-primary-200">
-                        {scheduleData?.stats?.completed_appointments || 0}
-                      </p>
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <div className="flex items-center space-x-3 space-x-reverse mb-2">
+                      <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                        <DollarSign className="w-5 h-5 text-green-600" />
+                      </div>
+                      <div>
+                        <h3 className="text-sm text-gray-500">الراتب بالساعة</h3>
+                        <p className="text-2xl font-bold text-gray-900">
+                          {salaryData?.salary_per_hour || 0} ₪
+                        </p>
+                      </div>
                     </div>
-                    
-                    <div className="bg-gray-50 p-4 rounded-lg">
-                      <h4 className="text-sm text-gray-500 mb-1">ساعات العمل (الشهر)</h4>
-                      <p className="text-2xl font-bold text-primary-200">
-                        {scheduleData?.stats?.monthly_hours || 0}
-                      </p>
-                    </div>
-                    
-                    <div className="bg-gray-50 p-4 rounded-lg">
-                      <h4 className="text-sm text-gray-500 mb-1">متوسط التقييم</h4>
-                      <p className="text-2xl font-bold text-primary-200">
-                        {scheduleData?.stats?.average_rating || 'غير متوفر'}
-                      </p>
+                  </div>
+                  
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <div className="flex items-center space-x-3 space-x-reverse mb-2">
+                      <div className="w-10 h-10 bg-primary-100 rounded-full flex items-center justify-center">
+                        <DollarSign className="w-5 h-5 text-primary-200" />
+                      </div>
+                      <div>
+                        <h3 className="text-sm text-gray-500">الراتب المستحق</h3>
+                        <p className="text-2xl font-bold text-primary-200">
+                          {salaryData?.calculated_salary || 0} ₪
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
+                
+                
               </div>
             )}
           </div>

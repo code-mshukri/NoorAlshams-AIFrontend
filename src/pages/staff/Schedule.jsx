@@ -143,12 +143,11 @@ const StaffSchedule = () => {
     return labels[status] || status
   }
 
- useEffect(() => {
+  useEffect(() => {
   if (showDetailsModal || showStatusModal) {
-    const scrollPosition = viewMode === 'month' ? 1000 : 300
-    window.scrollTo({ top: scrollPosition, behavior: 'smooth' })
+    window.scrollTo({ top: 250, behavior: 'smooth' })
   }
-}, [showDetailsModal, showStatusModal, viewMode])
+}, [showDetailsModal, showStatusModal])
 
   // Error state handling
   if (isError) {

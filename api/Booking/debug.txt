@@ -1,0 +1,7 @@
+Array
+(
+    [date_from] => 2025-06-27
+    [date_to] => 2025-07-03
+    [filter] => all
+    [csrf_token] => e8774c0c638c0e3a63c099988f9a5974ff7135eba2efb7a71fdfcd09008cd831
+)

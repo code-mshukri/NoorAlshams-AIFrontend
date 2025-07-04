@@ -88,9 +88,14 @@ switch ($period){
     case 'week': 
         $conditions .= " AND WEEK(check_in) = WEEK(CURDATE()) AND YEAR(check_in) = YEAR(CURDATE())";
         break;
-    case 'month':
-        $conditions .= " AND MONTH(check_in) = MONTH(CURDATE()) AND YEAR(check_in) = YEAR(CURDATE())";
-        break;
+   case 'month':
+    $startDate = date('Y-m-01 00:00:00'); // First day of current month
+    $endDate = date('Y-m-t 23:59:59');    // Last day of current month
+    $conditions .= " AND check_in BETWEEN ? AND ?";
+    $params[] = $startDate;
+    $params[] = $endDate;
+    $type .= "ss";
+    break;
     case 'all':
         default:
         break;

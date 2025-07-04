@@ -120,6 +120,17 @@ switch ($filter) {
         break;
 }
 
+$dateFrom = $_POST['date_from'] ?? null;
+$dateTo = $_POST['date_to'] ?? null;
+
+if ($dateFrom && $dateTo) {
+    $conditions[] = 'a.date BETWEEN ? AND ?';
+    $params[] = $dateFrom;
+    $params[] = $dateTo;
+    $types .= 'ss';
+}
+
+
 $whereClause = '';
 if (!empty($conditions)) {
     $whereClause = 'WHERE ' . implode(' AND ', $conditions);
@@ -128,31 +139,7 @@ if (!empty($conditions)) {
 $page_num = isset($_POST['page']) && is_numeric($_POST['page']) ? intval($_POST['page']) : 1;  //This is ternary operator, it's syntax is: condition ? value_if_true : value_if_false
     $limit = 10;
     $offset = ($page_num - 1) * $limit;
-    $types .= 'ii'; // 'i' for integer (limit and offset)
-
-$params [] = $limit;  // for pagination
-$params [] = $offset; // for pagination
-
-// Count total matching results for pagination
-$count_sql = "
-    SELECT COUNT(*) as total
-    FROM appointments a
-    JOIN users u ON a.client_id = u.id
-    JOIN services s ON a.service_id = s.id
-    JOIN users st ON a.staff_id = st.id
-    $whereClause
-";
-
-$count_stmt = $conn->prepare($count_sql);
-if (!empty($conditions)) {
-    // Exclude the pagination params (limit and offset) for count query
-    $count_stmt->bind_param(substr($types, 0, -2), ...array_slice($params, 0, -2));
-}
-$count_stmt->execute();
-$count_result = $count_stmt->get_result();
-$total_results = $count_result->fetch_assoc()['total'] ?? 0;
-$total_pages = ceil($total_results / $limit);
-$count_stmt->close();
+   
 
 
 $sql = "
@@ -168,10 +155,10 @@ $sql = "
     FROM appointments a
     JOIN users u ON a.client_id = u.id
     JOIN services s ON a.service_id = s.id
-    JOIN users st ON a.staff_id = st.id
+    LEFT JOIN users st ON a.staff_id = st.id
     $whereClause
     ORDER BY a.date, a.time
-    LIMIT ? OFFSET ?
+  
 ";
 
 $stmt = $conn->prepare($sql);
@@ -198,9 +185,7 @@ while($row = $result->fetch_assoc()){
 echo json_encode(
     [
         "status" => "success",
-        "data" => $appointments,
-        "total_results" => $total_results,
-        "total_pages" => $total_pages
+        "data" => $appointments
     ]
 );
 

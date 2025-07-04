@@ -35,10 +35,27 @@ if ($result->num_rows === 0) {
 }
 $stmt->close();
 
-// Pagination inputs
-$page = isset($_POST['page']) ? intval($_POST['page']) : 1;
-$limit = isset($_POST['limit']) ? intval($_POST['limit']) : 10;
-$offset = ($page - 1) * $limit;
+
+$usePagination = isset($_POST['paginate']) && $_POST['paginate'] == '1';
+
+if ($usePagination) {
+    $page = isset($_POST['page']) ? intval($_POST['page']) : 1;
+    $limit = isset($_POST['limit']) ? intval($_POST['limit']) : 10;
+    $offset = ($page - 1) * $limit;
+} else {
+    $limit = null;
+    $offset = null;
+}
+
+$total = null;
+if ($usePagination) {
+    $countSql = "SELECT COUNT(*) as total FROM users u JOIN staff_details sd ON u.id = sd.staff_id WHERE u.role = 'staff'";
+    $countResult = $conn->query($countSql);
+    $total = $countResult->fetch_assoc()['total'] ?? 0;
+}
+
+
+
 
 // Total count
 $countSql = "SELECT COUNT(*) as total FROM users u JOIN staff_details sd ON u.id = sd.staff_id WHERE u.role = 'staff'";
@@ -50,10 +67,14 @@ $sql = "SELECT u.id AS staff_id, u.full_name, u.email, u.phone, u.dob,
                sd.salary_per_hour, sd.notes, sd.date_registered
         FROM users u
         JOIN staff_details sd ON u.id = sd.staff_id
-        WHERE u.role = 'staff'
-        LIMIT ? OFFSET ?";
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("ii", $limit, $offset);
+        WHERE u.role = 'staff'";
+if ($usePagination) {
+    $sql .= " LIMIT ? OFFSET ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ii", $limit, $offset);
+} else {
+    $stmt = $conn->prepare($sql);
+}
 $stmt->execute();
 $result = $stmt->get_result();
 
