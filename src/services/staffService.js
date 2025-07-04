@@ -34,16 +34,31 @@ export const staffService = {
     return response
   },
 
-  async getStaffSchedule(staffId = null, dateFrom = null, dateTo = null) {
-    const formData = new FormData()
-    
-    if (staffId) formData.append('staff_id', staffId)
-    if (dateFrom) formData.append('date_from', dateFrom)
-    if (dateTo) formData.append('date_to', dateTo)
-    
-    const response = await api.post('/Staff/viewStaffSchedule.php', formData)
-    return response
-  },
+  async getStaffSchedule(staffId = null, dateFrom = null, dateTo = null, mode = null) {
+  const formData = new FormData()
+  if (staffId) formData.append('staff_id', staffId)
+  if (dateFrom) formData.append('date_from', dateFrom)
+  if (dateTo) formData.append('date_to', dateTo)
+  if (mode) formData.append('mode', mode)
+
+  const response = await api.post('/Staff/viewStaffSchedule.php', formData,
+    {withCredentials: true}
+  )
+  return response
+},
+
+async getFullStaffSchedule(staffId) {
+  const formData = new FormData()
+  formData.append('staff_id', staffId)
+
+  return await api.post('/staff/viewStaffSchedule.php', formData,
+    {
+      withCredentials: true
+    }
+  )
+}
+,
+
 
   async checkIn() {
     const formData = new FormData()

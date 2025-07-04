@@ -74,14 +74,13 @@ if(!$result || !$id || $role !== 'client')
     a.status
     FROM appointments a
     JOIN users u ON a.client_id = u.id
-    JOIN users staff ON a.staff_id = staff.id
+    LEFT JOIN users staff ON a.staff_id = staff.id
     JOIN services s ON a.service_id = s.id 
     WHERE a.client_id = ?
     ORDER BY a.date DESC, a.time DESC
-    LIMIT ? OFFSET ?
     ";
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("iii", $client_id, $limit, $offset);
+    $stmt->bind_param("i", $client_id);
     if(!$stmt->execute())
     {
         echo json_encode(

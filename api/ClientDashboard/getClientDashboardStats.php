@@ -21,7 +21,7 @@ $stmt1->fetch();
 $stmt1->close();
 
 // Upcoming appointments
-$stmt2 = $conn->prepare("SELECT COUNT(*) FROM appointments WHERE client_id = ? AND status IN ('pending', 'confirmed')");
+$stmt2 = $conn->prepare("SELECT COUNT(*) FROM appointments WHERE client_id = ? AND status IN ('pending', 'confirmed') AND date >= CURDATE()");
 $stmt2->bind_param("i", $user_id);
 $stmt2->execute();
 $stmt2->bind_result($upcomingAppointments);
