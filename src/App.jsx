@@ -14,6 +14,10 @@ import Footer from './components/layout/Footer'
 const LandingPage = React.lazy(() => import('./pages/LandingPage'))
 const Login = React.lazy(() => import('./pages/auth/Login'))
 const Register = React.lazy(() => import('./pages/auth/Register'))
+const VerifyEmail = React.lazy(() => import('./pages/auth/VerifyEmail'))
+const ForgotPassword = React.lazy(() => import('./pages/auth/ForgotPassword'))
+const ResetVerify = React.lazy(() => import('./pages/auth/ResetVerify'))
+const ResetPassword = React.lazy(() => import('./pages/auth/ResetPassword'))
 const Services = React.lazy(() => import('./pages/Services'))
 const About = React.lazy(() => import('./pages/About'))
 const Contact = React.lazy(() => import('./pages/Contact'))
@@ -93,6 +97,10 @@ function App() {
               <Route path="/" element={renderMotionPage(LandingPage)} />
               <Route path="/login" element={renderMotionPage(Login)} />
               <Route path="/register" element={renderMotionPage(Register)} />
+              <Route path="/auth/verify-email" element={renderMotionPage(VerifyEmail)} />
+              <Route path="/auth/forgot-password" element={renderMotionPage(ForgotPassword)} />
+              <Route path="/auth/reset-verify" element={renderMotionPage(ResetVerify)} />
+              <Route path="/auth/reset-password" element={renderMotionPage(ResetPassword)} />
               <Route path="/services" element={renderMotionPage(Services)} />
               <Route path="/about" element={renderMotionPage(About)} />
               <Route path="/contact" element={renderMotionPage(Contact)} />
@@ -155,7 +163,7 @@ function App() {
 
               {/* Admin Routes */}
             <Route
-              path="/admin/dashbaord"
+              path="/admin"
               element={
                 <ProtectedRoute allowedRoles={['admin']}>
                   {renderMotionPage(AdminDashboard)}

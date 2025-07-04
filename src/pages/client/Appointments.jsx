@@ -15,9 +15,9 @@ const ClientAppointments = () => {
   const queryClient = useQueryClient()
   const [currentPage, setCurrentPage] = useState(1)
   const [currentMonth, setCurrentMonth] = useState(new Date())
-  const [statusFilter, setStatusFilter] = useState('')
-  const [dateRange, setDateRange] = useState({ from: '', to: '' })
-  const [sortOrder, setSortOrder] = useState('newest')
+  // const [statusFilter, setStatusFilter] = useState('')
+  // const [dateRange, setDateRange] = useState({ from: '', to: '' })
+  // const [sortOrder, setSortOrder] = useState('newest')
   const [selectedAppointment, setSelectedAppointment] = useState(null)
   const [showDetailsModal, setShowDetailsModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
@@ -55,10 +55,6 @@ const ClientAppointments = () => {
       const formData = new FormData()
       formData.append('user_id', user?.id)
       formData.append('role', user?.role)
-      formData.append('status', statusFilter)
-      formData.append('date_from', dateRange.from)
-      formData.append('date_to', dateRange.to)
-      formData.append('sort', sortOrder)
       formData.append('page', currentPage)
 
       const response = await fetch('http://localhost/senior-nooralshams/api/booking/viewClientAppointments.php', {
@@ -215,12 +211,7 @@ const getAppointmentsForDay = (day) => {
     editAppointmentMutation.mutate(editFormData)
   }
 
-  const resetFilters = () => {
-    setStatusFilter('')
-    setDateRange({ from: '', to: '' })
-    setSortOrder('newest')
-  }
-
+  
   const handleAppointmentClick = (appointment) => {
     setSelectedAppointment(appointment)
     setShowDetailsModal(true)
@@ -253,81 +244,7 @@ const getAppointmentsForDay = (day) => {
           <p className="text-gray-600">عرض وإدارة جميع مواعيدك</p>
         </motion.div>
 
-        {/* Filters */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="card p-6 mb-8"
-        >
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {/* Status Filter */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">حالة الموعد</label>
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="input-field"
-              >
-                <option value="">جميع الحالات</option>
-                <option value="pending">في الانتظار</option>
-                <option value="confirmed">مؤكد</option>
-                <option value="completed">مكتمل</option>
-                <option value="cancelled">ملغي</option>
-              </select>
-            </div>
-
-            {/* Date From */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">من تاريخ</label>
-              <input
-                type="date"
-                value={dateRange.from}
-                onChange={(e) => setDateRange(prev => ({ ...prev, from: e.target.value }))}
-                className="input-field"
-              />
-            </div>
-
-            {/* Date To */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">إلى تاريخ</label>
-              <input
-                type="date"
-                value={dateRange.to}
-                onChange={(e) => setDateRange(prev => ({ ...prev, to: e.target.value }))}
-                className="input-field"
-              />
-            </div>
-
-            {/* Sort Order */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">ترتيب حسب</label>
-              <select
-                value={sortOrder}
-                onChange={(e) => setSortOrder(e.target.value)}
-                className="input-field"
-              >
-                <option value="newest">الأحدث أولاً</option>
-                <option value="oldest">الأقدم أولاً</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="flex justify-end mt-4">
-            <button
-              onClick={resetFilters}
-              className="btn-outline mr-2"
-            >
-              إعادة تعيين
-            </button>
-            <button
-              onClick={() => refetch()}
-              className="btn-primary"
-            >
-              تطبيق
-            </button>
-          </div>
-        </motion.div>
+        
 
         {/* Calendar View */}
         <motion.div

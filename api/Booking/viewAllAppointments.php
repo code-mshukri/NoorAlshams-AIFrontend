@@ -2,7 +2,7 @@
 header("Content-Type: application/json");
 include(__DIR__."/../../includes/conf.php");
 
-file_put_contents('debug.txt', print_r($_POST, true));
+
 
 
 $admin_id = $_POST['user_id'] ?? $_SESSION['user_id'] ?? null;

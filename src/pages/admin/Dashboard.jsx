@@ -8,7 +8,7 @@ import Footer from '../../components/layout/Footer'
 import LoadingSpinner from '../../components/ui/LoadingSpinner'
 import api from '../../services/api'
 
-const Dashboard = () => {
+const AdminDashboard = () => {
   const { data: statsData, isLoading } = useQuery(
   'admin-dashboard-stats',
   async () => {
@@ -61,7 +61,8 @@ const Dashboard = () => {
       icon: DollarSign,
       color: 'text-yellow-600',
       bgColor: 'bg-yellow-100',
-      prefix: 'ر.س '
+      prefix: '₪ '
+
     },
     {
       title: 'إجمالي الموظفين',
@@ -275,4 +276,4 @@ const Dashboard = () => {
   )
 }
 
-export default Dashboard
+export default AdminDashboard

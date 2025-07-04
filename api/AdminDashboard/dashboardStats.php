@@ -2,12 +2,7 @@
 header("Content-Type: application/json");
 include(__DIR__ . "/../../includes/conf.php");
 include(__DIR__ . "/../../includes/CsrfHelper.php");
-file_put_contents(__DIR__ . '/debug.log', json_encode([
-    'SESSION' => $_SESSION,
-    'POST' => $_POST,
-    'HEADER_X_CSRF' => $_SERVER['HTTP_X_CSRF_TOKEN'] ?? null
-], JSON_PRETTY_PRINT));
-            
+
 CsrfHelper::validateToken();
 
 // Cache mechanism (30s)
@@ -103,6 +98,8 @@ if ($status_result) {
 $services_avg_rating = getMultipleRows($conn, "SELECT ROUND(AVG(f.rating), 2) AS average_rating, s.name AS service_name FROM feedback f JOIN appointments a ON f.booking_id = a.id JOIN services s ON a.service_id = s.id GROUP BY s.id ORDER BY average_rating DESC", "SQL11 error");
 
 $staff_avg_rating = getMultipleRows($conn, "SELECT ROUND(AVG(f.rating), 2) AS average_rating, u.full_name AS staff_name FROM feedback f JOIN appointments a ON f.booking_id = a.id JOIN users u ON a.staff_id = u.id WHERE u.role = 'staff' GROUP BY u.id ORDER BY average_rating DESC", "SQL12 error");
+
+
 
 $response = [
     "status" => "success!",
