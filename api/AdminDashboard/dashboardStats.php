@@ -13,7 +13,7 @@ if (isset($_SESSION['dashboard_cache']) && time() - $_SESSION['dashboard_cache']
     exit;
 }
 
-$admin_id = $_POST['user_id'] ?? $_SESSION['user_id'] ?? null;
+$admin_id = $_POST['user_id'] ?? $_SESSION['user_id'] ?? null; 
 $role = $_POST['role'] ?? $_SESSION['role'] ?? null;
 
 if (!$admin_id || !$role) {
