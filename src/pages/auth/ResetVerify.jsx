@@ -16,7 +16,7 @@ const ResetVerify = () => {
   const [resendCountdown, setResendCountdown] = useState(0);
   const [userEmail, setUserEmail] = useState('');
   const inputRefs = Array(6).fill(0).map(() => useRef(null));
-  
+
   const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm({
     defaultValues: {
       digit1: '',
@@ -59,11 +59,11 @@ const ResetVerify = () => {
   // Handle countdown for resend button
   useEffect(() => {
     if (resendCountdown <= 0) return;
-    
+
     const timer = setTimeout(() => {
       setResendCountdown(prev => prev - 1);
     }, 1000);
-    
+
     return () => clearTimeout(timer);
   }, [resendCountdown]);
 
@@ -71,11 +71,11 @@ const ResetVerify = () => {
   const handlePaste = (e) => {
     e.preventDefault();
     const pastedData = e.clipboardData.getData('text').trim();
-    
+
     if (/^\d{6}$/.test(pastedData)) {
       // If pasted data is exactly 6 digits
       for (let i = 0; i < 6; i++) {
-        setValue(`digit${i+1}`, pastedData[i]);
+        setValue(`digit${i + 1}`, pastedData[i]);
       }
       inputRefs[5].current?.focus();
     }
@@ -85,27 +85,27 @@ const ResetVerify = () => {
   const handleKeyDown = (e, index) => {
     if (e.key === 'Backspace' && !e.target.value && index > 0) {
       // Move to previous input on backspace if current input is empty
-      inputRefs[index-1].current?.focus();
+      inputRefs[index - 1].current?.focus();
     } else if (e.key === 'ArrowLeft' && index > 0) {
       // Move to previous input on left arrow
-      inputRefs[index-1].current?.focus();
+      inputRefs[index - 1].current?.focus();
     } else if (e.key === 'ArrowRight' && index < 5) {
       // Move to next input on right arrow
-      inputRefs[index+1].current?.focus();
+      inputRefs[index + 1].current?.focus();
     }
   };
 
   // Handle input change
   const handleInputChange = (e, index) => {
     const value = e.target.value;
-    
+
     // Only allow digits
     if (/^\d*$/.test(value) && value.length <= 1) {
-      setValue(`digit${index+1}`, value);
-      
+      setValue(`digit${index + 1}`, value);
+
       // Auto-submit when all digits are filled
-      if (index === 5 && value && 
-          digit1 && digit2 && digit3 && digit4 && digit5) {
+      if (index === 5 && value &&
+        digit1 && digit2 && digit3 && digit4 && digit5) {
         setTimeout(() => {
           handleSubmit(onSubmit)();
         }, 300);
@@ -116,35 +116,40 @@ const ResetVerify = () => {
   // Handle form submission
   const onSubmit = async (data) => {
     if (isSubmitting) return;
-    
+
     const verificationCode = Object.values(data).join('');
-    
+
     if (verificationCode.length !== 6) {
       toast.error('الرجاء إدخال الرمز المكون من 6 أرقام');
       return;
     }
-    
+
     setIsSubmitting(true);
     setVerificationStatus('pending');
-    
+
+    console.log("🔐 Sending to verifyForgotPassword.php", {
+      email: userEmail,
+      entered_code: verificationCode
+    });
+
     try {
       const formData = new FormData();
       formData.append('email', userEmail);
       formData.append('entered_code', verificationCode);
-      
+
       const response = await api.post('/Auth/verifyForgotPassword.php', formData);
-      
+
       if (response.status === 'success' || response.status === 'success!') {
         setVerificationStatus('success');
         toast.success('تم التحقق من الرمز بنجاح');
-        
+
         // Redirect to reset password page
         setTimeout(() => {
-          navigate('/auth/reset-password', { 
-            state: { 
+          navigate('/auth/reset-password', {
+            state: {
               email: userEmail,
               verified: true
-            } 
+            }
           });
         }, 1500);
       } else {
@@ -162,14 +167,14 @@ const ResetVerify = () => {
   // Handle resend verification code
   const handleResendCode = async () => {
     if (resendCountdown > 0 || !userEmail) return;
-    
+
     try {
       const formData = new FormData();
       formData.append('email', userEmail);
       formData.append('full_name', ''); // Optional in some implementations
-      
+
       const response = await api.post('/Auth/forgotPassword.php', formData);
-      
+
       if (response.status === 'success' || response.status === 'success!') {
         toast.success('تم إرسال رمز جديد إلى بريدك الإلكتروني');
         setResendCountdown(60); // Start 60 second countdown
@@ -232,35 +237,38 @@ const ResetVerify = () => {
               <label className="block text-sm font-medium text-gray-700 mb-4 text-center">
                 رمز التحقق
               </label>
-              <div 
-                className="flex justify-between items-center gap-2" 
-                onPaste={handlePaste}
-              >
-                {Array(6).fill(0).map((_, index) => (
-                  <input
-                    key={index}
-                    type="text"
-                    maxLength={1}
-                    {...register(`digit${index+1}`, { 
-                      required: true,
-                      pattern: /^[0-9]$/
-                    })}
-                    ref={inputRefs[index]}
-                    onChange={(e) => handleInputChange(e, index)}
-                    onKeyDown={(e) => handleKeyDown(e, index)}
-                    className={`w-12 h-14 text-center text-xl font-bold border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-transparent transition-colors ${
-                      errors[`digit${index+1}`] 
-                        ? 'border-red-500' 
-                        : verificationStatus === 'success'
-                        ? 'border-green-500'
-                        : verificationStatus === 'error'
-                        ? 'border-red-500'
-                        : 'border-gray-300'
-                    }`}
-                    disabled={isSubmitting || verificationStatus === 'success'}
-                  />
-                ))}
-              </div>
+            <div className="flex justify-between items-center gap-2" onPaste={handlePaste}>
+  {[...Array(6)].map((_, i) => {
+    const index = 5 - i; // reverse the visual input order
+    return (
+      <input
+        key={index}
+        type="text"
+        maxLength={1}
+        inputMode="numeric"
+        dir="rtl"
+        {...register(`digit${index + 1}`, {
+          required: true,
+          pattern: /^[0-9]$/,
+        })}
+        ref={inputRefs[index]}
+        onChange={(e) => handleInputChange(e, index)}
+        onKeyDown={(e) => handleKeyDown(e, index)}
+        className={`w-12 h-14 text-center text-xl font-bold border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-transparent transition-colors ${
+          errors[`digit${index + 1}`]
+            ? 'border-red-500'
+            : verificationStatus === 'success'
+            ? 'border-green-500'
+            : verificationStatus === 'error'
+            ? 'border-red-500'
+            : 'border-gray-300'
+        }`}
+        disabled={isSubmitting || verificationStatus === 'success'}
+      />
+    );
+  })}
+</div>
+
               {errors.digit1 && (
                 <p className="mt-2 text-sm text-red-600 text-center">
                   الرجاء إدخال الرمز المكون من 6 أرقام

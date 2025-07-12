@@ -3,7 +3,7 @@ include(__DIR__ . '/../../includes/conf.php');
 header("Content-Type: application/json");
 
 try {
-    $limit = 10;
+    $limit = 9;
     $offset = 0;
     $isPaginated = false;
 

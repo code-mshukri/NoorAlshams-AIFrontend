@@ -33,16 +33,32 @@ if($_SERVER['REQUEST_METHOD'] === 'POST')
 
 
         $stmt = $conn->prepare("
-        SELECT s.name AS service_name, a.date, a.time
+        SELECT s.name AS service_name, u.full_name, a.date, a.time
         FROM appointments a
         JOIN services s ON a.service_id = s.id
+        JOIN users u ON a.client_id = u.id
         WHERE a.id = ?
         ");
        $stmt->bind_param('i', $appointment_id);
        $stmt->execute();
-       $stmt->bind_result($service_name, $date, $time);
+       $stmt->bind_result($service_name, $client_name, $date, $time);
        $stmt->fetch();
        $stmt->close();
+
+       // Check if the appointment is in the past
+$appointmentDateTime = DateTime::createFromFormat('Y-m-d H:i', "$date $time");
+$now = new DateTime();
+
+if (!$appointmentDateTime) {
+    echo json_encode(["status" => "error", "message" => "Invalid appointment date or time"]);
+    exit;
+}
+
+if ($appointmentDateTime < $now) {
+    echo json_encode(["status" => "error", "message" => "Cannot cancel past appointments"]);
+    exit;
+}
+
 
        $bookingData = [
             'service_name' => $service_name,
@@ -79,10 +95,12 @@ if($_SERVER['REQUEST_METHOD'] === 'POST')
             echo json_encode(["status" => "error", "message" => "Appointment not found or already completed"]);
             exit;
         }
+         NotificationHelper::sendBookingNotification($client_id, $bookingData);
+        NotificationHelper::notifyAdmins("تم إلغاء الحجز", "قام العميل $client_name بإلغاء موعده لخدمة $service_name بتاريخ $date في تمام الساعة $time.");
         echo json_encode(["status" => "success", "message" => "Appointment cancelled successfully!"]);
         $stmt->close();
 
-        NotificationHelper::sendBookingNotification($client_id, $bookingData);
+       
     }
 else
     {

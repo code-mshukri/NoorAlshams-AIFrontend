@@ -31,7 +31,7 @@ const ClientAppointments = () => {
   useEffect(() => {
     const fetchServices = async () => {
       try {
-        const response = await fetch('http://localhost/senior-nooralshams/api/services/viewServices.php', {
+        const response = await fetch('http://localhost/senior-nooralshams/api/ServicesEndpoint/viewServices.php', {
           method: 'POST',
           credentials: 'include'
         })
@@ -151,32 +151,32 @@ const ClientAppointments = () => {
 
   const calendarDays = getDaysInMonth(currentMonth.getFullYear(), currentMonth.getMonth())
   const prevMonth = () =>
-  setCurrentMonth(prev => {
-    const newDate = new Date(prev)
-    newDate.setMonth(newDate.getMonth() - 1)
-    return newDate
-  })
+    setCurrentMonth(prev => {
+      const newDate = new Date(prev)
+      newDate.setMonth(newDate.getMonth() - 1)
+      return newDate
+    })
 
-const nextMonth = () =>
-  setCurrentMonth(prev => {
-    const newDate = new Date(prev)
-    newDate.setMonth(newDate.getMonth() + 1)
-    return newDate
-  })
+  const nextMonth = () =>
+    setCurrentMonth(prev => {
+      const newDate = new Date(prev)
+      newDate.setMonth(newDate.getMonth() + 1)
+      return newDate
+    })
 
 
   const formatDate = (date) => {
-  const d = new Date(date)
-  const year = d.getFullYear()
-  const month = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
-}
+    const d = new Date(date)
+    const year = d.getFullYear()
+    const month = String(d.getMonth() + 1).padStart(2, '0')
+    const day = String(d.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+  }
 
-const getAppointmentsForDay = (day) => {
-  const targetDate = formatDate(day.date)
-  return appointments.filter(app => formatDate(app.date) === targetDate)
-}
+  const getAppointmentsForDay = (day) => {
+    const targetDate = formatDate(day.date)
+    return appointments.filter(app => formatDate(app.date) === targetDate)
+  }
 
 
 
@@ -200,6 +200,12 @@ const getAppointmentsForDay = (day) => {
     }
   }
 
+  const isPastAppointment = (appointment) => {
+    const appointmentDateTime = new Date(`${appointment.date}T${appointment.time}`);
+    return appointmentDateTime < new Date();
+  };
+
+
   const handleCancelAppointment = (id) => {
     if (window.confirm('هل أنت متأكد من إلغاء هذا الموعد؟')) {
       cancelAppointmentMutation.mutate(id)
@@ -211,7 +217,7 @@ const getAppointmentsForDay = (day) => {
     editAppointmentMutation.mutate(editFormData)
   }
 
-  
+
   const handleAppointmentClick = (appointment) => {
     setSelectedAppointment(appointment)
     setShowDetailsModal(true)
@@ -227,7 +233,7 @@ const getAppointmentsForDay = (day) => {
     setShowEditModal(true)
   }
 
-  
+
 
   return (
     <div className="min-h-screen gradient-bg">
@@ -244,7 +250,7 @@ const getAppointmentsForDay = (day) => {
           <p className="text-gray-600">عرض وإدارة جميع مواعيدك</p>
         </motion.div>
 
-        
+
 
         {/* Calendar View */}
         <motion.div
@@ -276,94 +282,94 @@ const getAppointmentsForDay = (day) => {
           </div>
 
           {/* Calendar Grid */}
-<div className="grid grid-cols-7 gap-2">
-  {/* Weekday Headers */}
-  {['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'].map((day, index) => (
-    <div key={index} className="text-center font-medium text-gray-700 py-2">
-      {day}
-    </div>
-  ))}
-
-  {/* Calendar Days */}
-  {calendarDays.map((day, index) => {
-    const dayAppointments = getAppointmentsForDay(day)
-    const isToday = day.date.toDateString() === new Date().toDateString()
-
-    return (
-      <div
-        key={day.date.toISOString()}
-        className={`min-h-24 border rounded-lg p-2 flex flex-col justify-between ${
-          day.isCurrentMonth
-            ? isToday
-              ? 'ring-2 ring-primary-200 bg-white'
-              : 'bg-white'
-            : 'bg-gray-50 text-gray-400'
-        }`}
-      >
-        {/* Date Number */}
-        <div className="text-right mb-1">
-          <span className={`text-sm ${isToday ? 'font-bold text-primary-200' : ''}`}>
-            {day.date.getDate()}
-          </span>
-        </div>
-
-        {/* Appointments */}
-        <div className="space-y-2 max-h-32 overflow-y-auto">
-          {dayAppointments.map((appointment) => (
-            <div
-              key={appointment.appointment_id}
-              className="bg-primary-50 border-r-4 border-primary-200 p-2 rounded-md text-xs"
-            >
-              <div className="flex items-center justify-between mb-1">
-                <span className="font-semibold truncate">{appointment.service_name}</span>
-                <span className="text-gray-600">{appointment.time?.substring(0, 5)}</span>
+          <div className="grid grid-cols-7 gap-2">
+            {/* Weekday Headers */}
+            {['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'].map((day, index) => (
+              <div key={index} className="text-center font-medium text-gray-700 py-2">
+                {day}
               </div>
+            ))}
 
-              {/* Optional: status label if desired */}
-              {getStatusLabel && (
-                <div className="mb-1 text-[10px]">
-                  <span className={`px-2 py-0.5 rounded-full ${getStatusColor(appointment.status)}`}>
-                    {getStatusLabel(appointment.status)}
-                  </span>
-                </div>
-              )}
+            {/* Calendar Days */}
+            {calendarDays.map((day, index) => {
+              const dayAppointments = getAppointmentsForDay(day)
+              const isToday = day.date.toDateString() === new Date().toDateString()
 
-              {/* Action buttons */}
-              <div className="flex justify-end gap-1 mt-1">
-                <button
-                  onClick={() => handleAppointmentClick(appointment)}
-                  className="btn-icon text-gray-600 hover:text-blue-600"
-                  title="تفاصيل"
+              return (
+                <div
+                  key={day.date.toISOString()}
+                  className={`min-h-24 border rounded-lg p-2 flex flex-col justify-between ${day.isCurrentMonth
+                      ? isToday
+                        ? 'ring-2 ring-primary-200 bg-white'
+                        : 'bg-white'
+                      : 'bg-gray-50 text-gray-400'
+                    }`}
                 >
-                  <Calendar className="w-4 h-4" />
-                </button>
+                  {/* Date Number */}
+                  <div className="text-right mb-1">
+                    <span className={`text-sm ${isToday ? 'font-bold text-primary-200' : ''}`}>
+                      {day.date.getDate()}
+                    </span>
+                  </div>
 
-                {(appointment.status === 'pending' || appointment.status === 'confirmed') && (
-                  <>
-                    <button
-                      onClick={() => handleEditClick(appointment)}
-                      className="btn-icon text-blue-600 hover:text-blue-800"
-                      title="تعديل"
-                    >
-                      <Edit className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => handleCancelAppointment(appointment.appointment_id)}
-                      className="btn-icon text-red-600 hover:text-red-800"
-                      title="إلغاء"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    )
-  })}
-</div>
+                  {/* Appointments */}
+                  <div className="space-y-2 max-h-32 overflow-y-auto">
+                    {dayAppointments.map((appointment) => (
+                      <div
+                        key={appointment.appointment_id}
+                        className="bg-primary-50 border-r-4 border-primary-200 p-2 rounded-md text-xs"
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="font-semibold truncate">{appointment.service_name}</span>
+                          <span className="text-gray-600">{appointment.time?.substring(0, 5)}</span>
+                        </div>
+
+                        {/* Optional: status label if desired */}
+                        {getStatusLabel && (
+                          <div className="mb-1 text-[10px]">
+                            <span className={`px-2 py-0.5 rounded-full ${getStatusColor(appointment.status)}`}>
+                              {getStatusLabel(appointment.status)}
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Action buttons */}
+                        <div className="flex justify-end gap-1 mt-1">
+                          <button
+                            onClick={() => handleAppointmentClick(appointment)}
+                            className="btn-icon text-gray-600 hover:text-blue-600"
+                            title="تفاصيل"
+                          >
+                            <Calendar className="w-4 h-4" />
+                          </button>
+
+                          {(appointment.status === 'pending' || appointment.status === 'confirmed') && !isPastAppointment(appointment) && (
+                            <>
+                              <button
+                                onClick={() => handleEditClick(appointment)}
+                                className="btn-icon text-blue-600 hover:text-blue-800"
+                                title="تعديل"
+                              >
+                                <Edit className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => handleCancelAppointment(appointment.appointment_id)}
+                                className="btn-icon text-red-600 hover:text-red-800"
+                                title="إلغاء"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </>
+                          )}
+
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
 
         </motion.div>
 

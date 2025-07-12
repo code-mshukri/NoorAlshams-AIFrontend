@@ -3,7 +3,7 @@ import { MessageCircle } from 'lucide-react'
 import { motion } from 'framer-motion'
 
 const WhatsAppButton = () => {
-  const whatsappNumber = import.meta.env.VITE_WHATSAPP_NUMBER || '+972598267948'
+  const whatsappNumber = import.meta.env.VITE_WHATSAPP_NUMBER || '+972599153406'
   
   const handleWhatsAppClick = () => {
     const message = encodeURIComponent('مرحباً، أود الاستفسار عن خدمات قصر نور الشمس للجمال')

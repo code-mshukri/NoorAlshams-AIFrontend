@@ -90,7 +90,7 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem('user_data', JSON.stringify(userData))
 
         dispatch({ type: 'AUTH_SUCCESS', payload: userData })
-        toast.success('تم تسجيل الدخول بنجاح!')
+        //toast.success('تم تسجيل الدخول بنجاح!')
         return { success: true, user: userData } // ✅ RETURN FULL USER OBJECT
       } else {
         const errorMsg = res.message || 'فشل تسجيل الدخول'
@@ -111,20 +111,35 @@ export const AuthProvider = ({ children }) => {
   const register = async (userData) => {
     try {
       dispatch({ type: 'AUTH_START' })
-      const response = await axios.post(
-        'http://localhost/senior-nooralshams/api/auth/register.php',
-        userData
-      )
+      const formData = new FormData()
+formData.append('full_name', userData.full_name)
+formData.append('email', userData.email)
+formData.append('password', userData.password)
+formData.append('password_confirm', userData.confirmPassword)
+formData.append('phone', userData.phone)
+formData.append('dob', userData.dob)
 
-      if (response.data.success) {
-        toast.success('تم إنشاء الحساب بنجاح! يرجى التحقق من بريدك الإلكتروني')
-        dispatch({ type: 'AUTH_FAILURE', payload: null })
-        return { success: true }
-      } else {
-        dispatch({ type: 'AUTH_FAILURE', payload: response.data.message })
-        toast.error(response.data.message || 'فشل التسجيل')
-        return { success: false }
-      }
+const response = await axios.post(
+  'http://localhost/senior-nooralshams/api/auth/register.php',
+  formData,
+  {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+    withCredentials: true
+  }
+)
+
+
+     if (response.data.status === 'success') {
+  toast.success('تم إنشاء الحساب بنجاح! يرجى التحقق من بريدك الإلكتروني')
+  dispatch({ type: 'AUTH_SUCCESS', payload: null })
+  return { status: 'success', message: response.data.message }
+} else {
+  dispatch({ type: 'AUTH_FAILURE', payload: response.data.message })
+  toast.error(response.data.message || 'فشل التسجيل')
+  return { status: 'error', message: response.data.message }
+}
     } catch (error) {
       dispatch({ type: 'AUTH_FAILURE', payload: 'خطأ في الاتصال بالخادم' })
       toast.error('حدث خطأ في إنشاء الحساب')
@@ -136,7 +151,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('auth_token')
     localStorage.removeItem('user_data')
     dispatch({ type: 'LOGOUT' })
-    toast.info('تم تسجيل الخروج بنجاح')
+    //toast.info('تم تسجيل الخروج بنجاح')
   }
 
   const clearError = () => dispatch({ type: 'CLEAR_ERROR' })

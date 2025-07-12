@@ -17,7 +17,8 @@ $admin_id = $_SESSION['user_id'] ?? $_POST['user_id'] ?? null;
     {
         $tmp_path = $_FILES['image']['tmp_name'];        //PHP stores the image file in a temporary path, we stored that path in a variable
         $imgName = basename($_FILES['image']['name']);   //Removes the directory and only stores the file name
-        $targetDir = __DIR__. '/../../uploads/';        //Stores the directory where the image will be stored.
+       $targetDir = __DIR__. '/../../public/uploads/';
+        //Stores the directory where the image will be stored.
         $target_path = $targetDir.$imgName;             //Concatenate the directory with the name of the image, and we'll be having the target path ready
 
         if(!move_uploaded_file($tmp_path, $target_path))   //This method moves the file from the old location to a new destination

@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, X, Check, MessageCircle, Calendar, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
-import axios from 'axios';
+import api from '../../services/api'
 import { toast } from 'react-toastify';
 
 /**
@@ -24,55 +24,66 @@ const NotificationCenter = () => {
   const [unreadCount, setUnreadCount] = useState(0);
 
   // Fetch notifications from API
-  const fetchNotifications = async () => {
-    if (!user) return;
-    
-    setLoading(true);
-    try {
-      const response = await axios.get('/api/Notifications/viewNotifications.php', {
-        withCredentials: true
-      });
-      
-      if (response.data.status === 'success') {
-        const notificationData = response.data.data || [];
-        setNotifications(notificationData);
-        
-        // Count unread notifications
-        const unread = notificationData.filter(n => !n.is_read).length;
-        setUnreadCount(unread);
-      }
-    } catch (error) {
-      console.error('Error fetching notifications:', error);
-    } finally {
-      setLoading(false);
+
+
+const fetchNotifications = async () => {
+  if (!user) return;
+
+  setLoading(true);
+
+  try {
+    const response = await api.post('/Notifications/viewNotifications.php', new FormData());
+
+    if (response.status === 'success') {
+      const notificationData = response.data || [];
+      setNotifications(notificationData);
+
+      const unread = notificationData.filter(n => !n.is_read).length;
+      setUnreadCount(unread);
     }
-  };
+  } catch (error) {
+    console.error('Error fetching notifications:', error);
+    // error toast is already handled by api.js interceptor
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   // Mark notification as read
   const markAsRead = async (notificationId) => {
     try {
-      const response = await axios.post('/api/Notifications/markNotificationAsRead.php', {
-        notification_id: notificationId
-      }, {
-        withCredentials: true
-      });
+      const formData = new FormData();
+formData.append('notification_id', notificationId);
 
-      if (response.data.status === 'success') {
+const response = await api.post('/Notifications/markNotificationAsRead.php', formData, {
+  withCredentials: true
+});
+
+      if (response.status === 'success') {
         // Update local state
-        setNotifications(prev => 
-          prev.map(notification => 
-            notification.id === notificationId 
+        setNotifications(prev =>
+          prev.map(notification =>
+            notification.id === notificationId
               ? { ...notification, is_read: true }
               : notification
           )
         );
-        
+
         // Update unread count
-        setUnreadCount(prev => Math.max(0, prev - 1));
+       const updated = notifications.map(notification =>
+  notification.id === notificationId
+    ? { ...notification, is_read: true }
+    : notification
+);
+
+setNotifications(updated);
+setUnreadCount(updated.filter(n => !n.is_read).length);
+
       }
     } catch (error) {
       console.error('Error marking notification as read:', error);
-      toast.error(t('error_marking_notification'));
+      //  toast.error(t('error_marking_notification'));
     }
   };
 
@@ -80,11 +91,11 @@ const NotificationCenter = () => {
   const markAllAsRead = async () => {
     try {
       const unreadNotifications = notifications.filter(n => !n.is_read);
-      
+
       for (const notification of unreadNotifications) {
         await markAsRead(notification.id);
       }
-      
+
       toast.success(t('all_notifications_marked_read'));
     } catch (error) {
       console.error('Error marking all notifications as read:', error);
@@ -98,6 +109,9 @@ const NotificationCenter = () => {
       case 'message':
         return <MessageCircle className="w-5 h-5 text-blue-500" />;
       case 'appointment':
+      case 'booking_completed':
+      case 'booking_confirmed':
+      case 'booking_cancelled':
         return <Calendar className="w-5 h-5 text-green-500" />;
       case 'system':
         return <AlertCircle className="w-5 h-5 text-orange-500" />;
@@ -107,31 +121,25 @@ const NotificationCenter = () => {
   };
 
   // Format notification time
-  const formatNotificationTime = (timestamp) => {
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diffInMinutes = (now - date) / (1000 * 60);
-    const diffInHours = diffInMinutes / 60;
-    const diffInDays = diffInHours / 24;
+ const formatNotificationTime = (timestamp) => {
+  const date = new Date(timestamp);
 
-    if (diffInMinutes < 1) {
-      return t('just_now');
-    } else if (diffInMinutes < 60) {
-      return t('minutes_ago', { count: Math.floor(diffInMinutes) });
-    } else if (diffInHours < 24) {
-      return t('hours_ago', { count: Math.floor(diffInHours) });
-    } else if (diffInDays < 7) {
-      return t('days_ago', { count: Math.floor(diffInDays) });
-    } else {
-      return date.toLocaleDateString(language === 'ar' ? 'ar-SA' : 'en-US');
-    }
-  };
+  return date.toLocaleString(language === 'ar' ? 'ar-SA' : 'en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true
+  });
+};
+
 
   // Load notifications on component mount and set up polling
   useEffect(() => {
     if (user) {
       fetchNotifications();
-      
+
       // Poll for new notifications every 30 seconds
       const interval = setInterval(fetchNotifications, 30000);
       return () => clearInterval(interval);
@@ -162,7 +170,7 @@ const NotificationCenter = () => {
         title={t('notifications')}
       >
         <Bell className="w-6 h-6" />
-        
+
         {/* Notification Badge */}
         <AnimatePresence>
           {unreadCount > 0 && (
@@ -233,9 +241,8 @@ const NotificationCenter = () => {
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       whileHover={{ backgroundColor: '#f9fafb' }}
-                      className={`p-4 cursor-pointer transition-colors ${
-                        !notification.is_read ? 'bg-blue-50 border-l-4 border-blue-500' : ''
-                      }`}
+                      className={`p-4 cursor-pointer transition-colors ${!notification.is_read ? 'bg-blue-50 border-l-4 border-blue-500' : ''
+                        }`}
                       onClick={() => {
                         if (!notification.is_read) {
                           markAsRead(notification.id);
@@ -247,9 +254,8 @@ const NotificationCenter = () => {
                           {getNotificationIcon(notification.type)}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className={`text-sm ${
-                            !notification.is_read ? 'font-semibold text-gray-900' : 'text-gray-700'
-                          }`}>
+                          <p className={`text-sm ${!notification.is_read ? 'font-semibold text-gray-900' : 'text-gray-700'
+                            }`}>
                             {notification.title}
                           </p>
                           <p className="text-sm text-gray-500 mt-1">

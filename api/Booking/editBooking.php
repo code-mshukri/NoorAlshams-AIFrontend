@@ -116,7 +116,8 @@ if($_SERVER['REQUEST_METHOD'] === 'POST')
     ];
 
     NotificationHelper::sendBookingNotification($client_id, $bookingData);
-    NotificationHelper::notifyAdmins("Appointment Updated", "Client $client_name updated their appointment for $service_name from $old_date at $old_time to $date at $time.");
+    NotificationHelper::notifyAdmins("تم تعديل الحجز", "قام العميل $client_name بتعديل موعده لخدمة $service_name من $old_date في $old_time إلى $date في $time.");
+
 
     echo json_encode(["status" => "success", "message" => "Appointment updated successfully!"]);
 }

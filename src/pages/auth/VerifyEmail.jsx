@@ -123,6 +123,7 @@ const VerifyEmail = () => {
     setIsSubmitting(true);
     setVerificationStatus('pending');
     
+
     try {
       const formData = new FormData();
       formData.append('email', userEmail);
@@ -231,30 +232,34 @@ const VerifyEmail = () => {
                 className="flex justify-between items-center gap-2" 
                 onPaste={handlePaste}
               >
-                {Array(6).fill(0).map((_, index) => (
-                  <input
-                    key={index}
-                    type="text"
-                    maxLength={1}
-                    {...register(`digit${index+1}`, { 
-                      required: true,
-                      pattern: /^[0-9]$/
-                    })}
-                    ref={inputRefs[index]}
-                    onChange={(e) => handleInputChange(e, index)}
-                    onKeyDown={(e) => handleKeyDown(e, index)}
-                    className={`w-12 h-14 text-center text-xl font-bold border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-transparent transition-colors ${
-                      errors[`digit${index+1}`] 
-                        ? 'border-red-500' 
-                        : verificationStatus === 'success'
-                        ? 'border-green-500'
-                        : verificationStatus === 'error'
-                        ? 'border-red-500'
-                        : 'border-gray-300'
-                    }`}
-                    disabled={isSubmitting || verificationStatus === 'success'}
-                  />
-                ))}
+                {[...Array(6)].map((_, i) => {
+  const index = 5 - i; // reverse the visual input order
+  return (
+    <input
+      key={index}
+      type="text"
+      maxLength={1}
+      {...register(`digit${index + 1}`, {
+        required: true,
+        pattern: /^[0-9]$/,
+      })}
+      ref={inputRefs[index]}
+      onChange={(e) => handleInputChange(e, index)}
+      onKeyDown={(e) => handleKeyDown(e, index)}
+      className={`w-12 h-14 text-center text-xl font-bold border-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-200 focus:border-transparent transition-colors ${
+        errors[`digit${index + 1}`]
+          ? 'border-red-500'
+          : verificationStatus === 'success'
+          ? 'border-green-500'
+          : verificationStatus === 'error'
+          ? 'border-red-500'
+          : 'border-gray-300'
+      }`}
+      disabled={isSubmitting || verificationStatus === 'success'}
+    />
+  );
+})}
+
               </div>
               {errors.digit1 && (
                 <p className="mt-2 text-sm text-red-600 text-center">

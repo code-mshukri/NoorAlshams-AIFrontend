@@ -10,6 +10,8 @@ import WhatsAppButton from './components/ui/WhatsAppButton'
 import Header from './components/layout/Header'
 import Footer from './components/layout/Footer'
 
+
+
 // Lazy load pages
 const LandingPage = React.lazy(() => import('./pages/LandingPage'))
 const Login = React.lazy(() => import('./pages/auth/Login'))

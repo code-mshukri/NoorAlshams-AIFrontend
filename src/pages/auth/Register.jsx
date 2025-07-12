@@ -26,17 +26,17 @@ const Register = () => {
 
   const onSubmit = async (data) => {
     const result = await registerUser({
-      full_name: data.fullName,
+      full_name: data.full_name,
       email: data.email,
       password: data.password,
       confirmPassword: data.confirmPassword,
       phone: data.phone,
       dob: data.dob,
-    })
+    });
     
-    if (result.success) {
-      navigate('/login')
-    }
+    if (result.status === 'success') {
+  navigate('/auth/verify-email', { state: { email: data.email } });
+}
   }
 
   const passwordRequirements = [
@@ -95,11 +95,11 @@ const Register = () => {
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             {/* Full Name */}
             <div>
-              <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="full_name" className="block text-sm font-medium text-gray-700 mb-2">
                 الاسم الكامل
               </label>
               <input
-                {...register('fullName', {
+                {...register('full_name', {
                   required: 'الاسم الكامل مطلوب',
                   minLength: {
                     value: 2,
@@ -107,11 +107,11 @@ const Register = () => {
                   }
                 })}
                 type="text"
-                className={`input-field ${errors.fullName ? 'border-red-500' : ''}`}
+                className={`input-field ${errors.full_name ? 'border-red-500' : ''}`}
                 placeholder="أدخلي اسمك الكامل"
               />
-              {errors.fullName && (
-                <p className="mt-1 text-sm text-red-600">{errors.fullName.message}</p>
+              {errors.full_name && (
+                <p className="mt-1 text-sm text-red-600">{errors.full_name.message}</p>
               )}
             </div>
 
@@ -299,14 +299,7 @@ const Register = () => {
                 تسجيل الدخول
               </Link>
             </p>
-            <p className="text-gray-600 mt-2">
-              <Link
-                to="/auth/verify-email"
-                className="text-primary-200 hover:text-primary-300 font-medium"
-              >
-                تفعيل الحساب
-              </Link>
-            </p>
+            
           </div>
         </motion.div>
       </motion.div>

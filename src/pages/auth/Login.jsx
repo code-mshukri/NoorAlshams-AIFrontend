@@ -124,7 +124,7 @@ const Login = () => {
                     to="/auth/forgot-password"
                     className="text-primary-200 hover:text-primary-300 font-medium"
                   >
-                    نسيت كلمة المرور؟
+                    نسيتي كلمة المرور؟
                   </Link>
                 </p>
               </div>
@@ -133,14 +133,7 @@ const Login = () => {
               )}
             </div>
 
-            <div className="text-left">
-              <Link
-                to="/forgot-password"
-                className="text-sm text-primary-200 hover:text-primary-300 font-medium"
-              >
-                نسيت كلمة المرور؟
-              </Link>
-            </div>
+            
 
             <button
               type="submit"
@@ -158,7 +151,7 @@ const Login = () => {
                 to="/register"
                 className="text-primary-200 hover:text-primary-300 font-medium"
               >
-                إنشاء حساب جديد
+                أنشئي حساب جديد
               </Link>
             </p>
           </div>

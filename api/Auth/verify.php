@@ -32,7 +32,10 @@ $stmt->fetch();                                    // Fetches the value into $st
 $stmt->close();                                    // Closes the statement
 
 // Compares user-entered code with what's in the database
-if ($entered_code === $stored_code) {
+$entered_code = trim($entered_code);
+$stored_code = trim($stored_code);
+
+if ($entered_code == $stored_code) {
 
     // If correct, update the user row to mark as verified and remove the code
     $update = $conn->prepare("UPDATE users SET is_verified = 1, verify_code = NULL WHERE email = ?");

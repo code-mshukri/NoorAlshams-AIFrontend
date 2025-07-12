@@ -44,8 +44,7 @@ const ResetPassword = () => {
     { text: 'على الأقل 8 أحرف', met: password?.length >= 8 },
     { text: 'يحتوي على حرف كبير', met: /[A-Z]/.test(password) },
     { text: 'يحتوي على حرف صغير', met: /[a-z]/.test(password) },
-    { text: 'يحتوي على رقم', met: /\d/.test(password) },
-    { text: 'يحتوي على رمز خاص', met: /[!@#$%^&*(),.?":{}|<>]/.test(password) },
+    { text: 'يحتوي على رقم', met: /\d/.test(password) }
   ];
 
   // Check if all password requirements are met

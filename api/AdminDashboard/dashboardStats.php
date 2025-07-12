@@ -5,14 +5,6 @@ include(__DIR__ . "/../../includes/CsrfHelper.php");
 
 CsrfHelper::validateToken();
 
-// Cache mechanism (30s)
-if (isset($_SESSION['dashboard_cache']) && time() - $_SESSION['dashboard_cache']['timestamp'] < 30) {
-    $cached_response = $_SESSION['dashboard_cache'];
-    $cached_response['cached'] = true;
-    echo json_encode($cached_response);
-    exit;
-}
-
 $admin_id = $_POST['user_id'] ?? $_SESSION['user_id'] ?? null; 
 $role = $_POST['role'] ?? $_SESSION['role'] ?? null;
 
@@ -99,10 +91,8 @@ $services_avg_rating = getMultipleRows($conn, "SELECT ROUND(AVG(f.rating), 2) AS
 
 $staff_avg_rating = getMultipleRows($conn, "SELECT ROUND(AVG(f.rating), 2) AS average_rating, u.full_name AS staff_name FROM feedback f JOIN appointments a ON f.booking_id = a.id JOIN users u ON a.staff_id = u.id WHERE u.role = 'staff' GROUP BY u.id ORDER BY average_rating DESC", "SQL12 error");
 
-
-
 $response = [
-    "status" => "success!",
+    "status" => "success",
     "total_clients" => $total_clients,
     "total_staff" => $total_staff,
     "today_appointments" => $today_appointments,
@@ -119,11 +109,6 @@ $response = [
     "services_avg_rating" => $services_avg_rating,
     "staff_avg_rating" => $staff_avg_rating,
     "generated_at" => date("Y-m-d H:i:s")
-];
-
-$_SESSION['dashboard_cache'] = [
-    "timestamp" => time(),
-    "data" => $response
 ];
 
 echo json_encode($response);
