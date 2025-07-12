@@ -203,22 +203,7 @@ setUnreadCount(updated.filter(n => !n.is_read).length);
                   <Bell className="w-5 h-5 mr-2" />
                   {t('notifications')}
                 </h3>
-                <div className="flex items-center space-x-2">
-                  {unreadCount > 0 && (
-                    <button
-                      onClick={markAllAsRead}
-                      className="text-sm text-primary-200 hover:text-primary-300 font-medium"
-                    >
-                      {t('mark_all_read')}
-                    </button>
-                  )}
-                  <button
-                    onClick={() => setIsOpen(false)}
-                    className="p-1 text-gray-400 hover:text-gray-600"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
+                
               </div>
             </div>
 

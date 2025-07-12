@@ -84,17 +84,17 @@ const Header = () => {
           {/* Right Side Actions */}
           <div className="flex items-center space-x-4 space-x-reverse">
             {/* Language Toggle */}
-           {/* <button
+            {/* <button
               onClick={toggleLanguage}
               className="p-2 text-gray-600 hover:text-primary-200 transition-colors duration-200"
               title={language === 'ar' ? 'English' : 'العربية'}
             >
               <Globe className="w-5 h-5" />
-            </button>*/} 
+            </button>*/}
 
             {isAuthenticated && (isClient || isStaff || isAdmin) && (
-  <NotificationCenter />
-)}
+              <NotificationCenter />
+            )}
 
 
             {/* User Menu or Auth Buttons */}
