@@ -1,0 +1,11 @@
+Array
+(
+    [service_id] => 2
+    [name] => تنظيف عميق للبشرة KB PURE لعلاج حب الشباب
+    [description] => جلسة لعلاج حب الشباب باستخدام منتجات شركة KB PURE
+    [price] => 250.00
+    [duration] => 20
+    [role] => admin
+    [user_id] => null
+    [csrf_token] => 98a6c4f6c3901e15b72091d26c0116bf3abb63f2d1f29cbfbc5d5d3fab264ab7
+)

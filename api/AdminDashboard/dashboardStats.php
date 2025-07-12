@@ -65,10 +65,34 @@ $total_appointments = getSingleValue($conn, "SELECT COUNT(*) AS total_appointmen
 
 $top_services = getMultipleRows($conn, "SELECT s.name, COUNT(*) AS bookings FROM appointments a JOIN services s ON a.service_id = s.id GROUP BY s.id ORDER BY bookings DESC LIMIT 5", "SQL6 error");
 
-$total_revenue = getSingleValue($conn, "SELECT SUM(price) AS total_revenue FROM appointments", 'total_revenue', "SQL7 error");
-$today_revenue = getSingleValue($conn, "SELECT SUM(price) AS today_revenue FROM appointments WHERE DATE(date) = CURDATE()", 'today_revenue', "SQL7.1 error");
-$month_revenue = getSingleValue($conn, "SELECT SUM(price) AS month_revenue FROM appointments WHERE MONTH(date) = MONTH(CURDATE()) AND YEAR(date) = YEAR(CURDATE())", 'month_revenue', "SQL7.2 error");
-$year_revenue = getSingleValue($conn, "SELECT SUM(price) AS year_revenue FROM appointments WHERE YEAR(date) = YEAR(CURDATE())", 'year_revenue', "SQL7.3 error");
+$total_revenue = getSingleValue(
+  $conn,
+  "SELECT SUM(price) AS total_revenue FROM appointments WHERE status = 'completed'",
+  'total_revenue',
+  "SQL7 error"
+);
+
+$today_revenue = getSingleValue(
+  $conn,
+  "SELECT SUM(price) AS today_revenue FROM appointments WHERE DATE(date) = CURDATE() AND status = 'completed'",
+  'today_revenue',
+  "SQL7.1 error"
+);
+
+$month_revenue = getSingleValue(
+  $conn,
+  "SELECT SUM(price) AS month_revenue FROM appointments WHERE MONTH(date) = MONTH(CURDATE()) AND YEAR(date) = YEAR(CURDATE()) AND status = 'completed'",
+  'month_revenue',
+  "SQL7.2 error"
+);
+
+$year_revenue = getSingleValue(
+  $conn,
+  "SELECT SUM(price) AS year_revenue FROM appointments WHERE YEAR(date) = YEAR(CURDATE()) AND status = 'completed'",
+  'year_revenue',
+  "SQL7.3 error"
+);
+
 
 $status_counts = [
     'completed' => 0,

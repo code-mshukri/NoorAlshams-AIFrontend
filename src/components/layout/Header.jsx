@@ -30,9 +30,10 @@ const Header = () => {
 
     ...(isAuthenticated && isClient
       ? [
-        { name: 'لوحة التحكم', path: '/client/dashboard' },
+        { name: 'لوحة التحكم', path: '/client' },
         { name: 'حجوزاتي', path: '/client/appointments' },
         { name: 'احجز موعد', path: '/client/booking' },
+        { name: ' تقييماتي', path: '/client/feedback' },
         { name: 'حسابي', path: '/client/profile' }
 
       ]
@@ -49,7 +50,7 @@ const Header = () => {
 
     ...(isAuthenticated && isStaff
       ? [
-        { name: 'لوحة التحكم', path: '/staff/dashboard' },
+        { name: 'لوحة التحكم', path: '/staff' },
         { name: 'جدولي', path: '/staff/schedule' },
         { name: 'حسابي', path: '/staff/profile' }
       ]

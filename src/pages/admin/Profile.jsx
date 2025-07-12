@@ -11,8 +11,9 @@ import { useAuth } from '../../contexts/AuthContext'
 
 const AdminProfile = () => {
   const [isEditing, setIsEditing] = useState(false)
-  const { user } = useAuth()
+  const { setUser, user } = useAuth()
   const [loading, setLoading] = useState(true)
+
 
   const {
     register,
@@ -129,16 +130,6 @@ const AdminProfile = () => {
                 </div>
                 <h2 className="text-xl font-bold text-gray-900 mb-2">{user?.full_name}</h2>
                 <p className="text-gray-600 mb-4">{user?.email}</p>
-                <div className="space-y-2 text-sm text-gray-500">
-                  <div className="flex items-center justify-center space-x-2 space-x-reverse">
-                    <Calendar className="w-4 h-4" />
-                    <span>مدير منذ 2024</span>
-                  </div>
-                  <div className="flex items-center justify-center space-x-2 space-x-reverse">
-                    <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                    <span>نشط</span>
-                  </div>
-                </div>
               </div>
             </motion.div>
 

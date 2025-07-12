@@ -119,7 +119,7 @@ function App() {
 
               {/* Updated Client Routes */}
               <Route
-                path="/client/dashboard"
+                path="/client"
                 element={
                   <ProtectedRoute allowedRoles={['client']}>
                     {renderMotionPage(ClientDashboard)}
@@ -235,7 +235,7 @@ function App() {
 
                           {/* Staff Routes */}
             <Route
-              path="/staff/dashboard"
+              path="/staff"
               element={
                 <ProtectedRoute allowedRoles={['staff']}>
                   {renderMotionPage(StaffDashboard)}

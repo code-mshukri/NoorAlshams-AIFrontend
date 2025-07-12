@@ -106,9 +106,16 @@ const AdminServices = () => {
   }
 
   const handleAddModalClose = () => {
-    setShowAddModal(false)
-    reset()
-  }
+  setShowAddModal(false)
+  reset({
+    name: '',
+    description: '',
+    price: '',
+    duration: '',
+    image: null
+  })
+}
+
 
   const paginatedServices = services.slice(
     (currentPage - 1) * itemsPerPage,
@@ -169,7 +176,7 @@ const AdminServices = () => {
               <div className="p-6">
                 <div className="flex justify-between items-start mb-2">
                   <h3 className="text-lg font-bold">{service.name}</h3>
-                  <span className="text-primary-600 font-bold">{service.price} ر.س</span>
+                  <span className="text-primary-600 font-bold">{service.price} ₪</span>
                 </div>
                 <p className="text-sm text-gray-600 mb-4 line-clamp-2">{service.description}</p>
                 <div className="text-sm text-gray-500 mb-4 flex justify-between">

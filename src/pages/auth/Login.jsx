@@ -29,7 +29,7 @@ const Login = () => {
       } else if (role === 'staff') {
         navigate('/staff')
       } else {
-        navigate('/client/dashboard')
+        navigate('/client')
       }
     }
   }
@@ -57,9 +57,9 @@ const Login = () => {
             transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
             className="mx-auto h-20 w-20 bg-white rounded-full flex items-center justify-center shadow-lg mb-6"
           >
-            <img 
+            <img
               src={logo}
-              alt="قصر نور الشمس" 
+              alt="قصر نور الشمس"
               className="w-24 h-24 rounded-full object-cover mx-auto"
             />
           </motion.div>
@@ -113,12 +113,13 @@ const Login = () => {
                   placeholder="أدخلي كلمة المرور"
                 />
                 <button
-                    to="/register" 
+                  type="button" // ✅ Prevents form submission
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
+
                 <p className="text-gray-600 mt-2">
                   <Link
                     to="/auth/forgot-password"
@@ -133,7 +134,7 @@ const Login = () => {
               )}
             </div>
 
-            
+
 
             <button
               type="submit"

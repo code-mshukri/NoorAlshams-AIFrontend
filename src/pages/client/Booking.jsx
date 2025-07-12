@@ -158,7 +158,9 @@ const ClientBooking = () => {
                   >
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="font-semibold text-gray-900">{service.name}</h3>
-                      <span className="text-primary-200 font-bold">{service.price} ر.س</span>
+                     
+                      <span className="text-primary-200 font-bold">{service.price} ₪</span>
+
                     </div>
                     <p className="text-gray-600 text-sm mb-2">{service.description}</p>
                     <div className="flex items-center text-gray-500 text-sm">
