@@ -186,7 +186,7 @@ const Header = () => {
                         <>
                           {(isClient || isStaff) && (
                             <Link
-                              to={`/${user.role}/dashboard`}
+                              to={`/${user.role}`}
                               className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                               onClick={() => setIsUserMenuOpen(false)}
                             >

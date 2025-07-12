@@ -53,6 +53,12 @@ if ($staff_admin_id && $appointment_id && ($role === 'admin' || $role === 'staff
 
     $stmt->close();
     NotificationHelper::sendBookingNotification($client_id, $bookingData);
+    NotificationHelper::notifyAdmins(
+    "تم تحديث حالة الحجز",
+    "تم تحديث الحجز لخدمة '$service_name' بتاريخ $date في الساعة $time إلى الحالة '$status'.",
+    $appointment_id
+);
+
 
     
 

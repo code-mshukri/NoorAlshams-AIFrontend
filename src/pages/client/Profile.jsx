@@ -160,7 +160,7 @@ const ClientProfile = () => {
                       <input
                         {...register('full_name', { required: 'الاسم الكامل مطلوب' })}
                         type="text"
-                        disabled={!isEditing}
+                        disabled
                         className={`input-field pr-12 ${!isEditing ? 'bg-gray-50' : ''} ${errors.full_name ? 'border-red-500' : ''}`}
                       />
                     </div>
